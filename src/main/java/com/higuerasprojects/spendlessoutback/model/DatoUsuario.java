@@ -4,7 +4,6 @@
 package com.higuerasprojects.spendlessoutback.model;
 
 import java.io.Serializable;
-import java.sql.Timestamp;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -36,7 +35,7 @@ public class DatoUsuario implements Serializable{
 	public static final String DATO_USUARIO_DATABASE = "TDatoUsuario";
 	
 	@Id
-	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "TDatoUsuario_id_SEQ")
+	@GeneratedValue(strategy = GenerationType.AUTO, generator = "TDatoUsuario_id_SEQ")
 	@JsonFormat
 	private long id;
 	

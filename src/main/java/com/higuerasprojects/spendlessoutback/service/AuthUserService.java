@@ -3,8 +3,9 @@
  */
 package com.higuerasprojects.spendlessoutback.service;
 
-import java.util.ArrayList;
-import java.util.Calendar;
+import java.util.Objects;
+//import java.util.ArrayList;
+//import java.util.Calendar;
 import java.util.Optional;
 
 import org.modelmapper.ModelMapper;
@@ -12,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import com.higuerasprojects.spendlessoutback.dto.UsuarioDTO;
 import com.higuerasprojects.spendlessoutback.dto.jwt.JWTRequestDTO;
@@ -34,7 +36,7 @@ public class AuthUserService {
 	@Autowired
 	private JWTAuthTokenService jwtService;
 
-	private DatoUsuarioRepositoryMock repoMock = new DatoUsuarioRepositoryMock();
+//	private DatoUsuarioRepositoryMock repoMock = new DatoUsuarioRepositoryMock();
 
 	@Autowired
 	private ModelMapper modelMapper;
@@ -52,7 +54,7 @@ public class AuthUserService {
 		if (pUserRequest != null && pUserRequest.getEmail() != null) {
 			LOGGER.info("login User - " + pUserRequest.getEmail());
 			LOGGER.info("login Pass - " + pUserRequest.getPassword());
-			Optional<DatoUsuario> user = repoMock.findByEmail(pUserRequest.getEmail());
+			Optional<DatoUsuario> user = repo.findByEmail(pUserRequest.getEmail().trim());
 			if (user.isPresent()) {
 				final boolean passCorrect = user.get().getPassword().equals(pUserRequest.getPassword());
 				if (passCorrect) {
@@ -66,23 +68,37 @@ public class AuthUserService {
 	}
 
 	/**
-	 * return the transport object related to user data.
+	 * retrieve expiration date from JWT token.
+	 * 
+	 * @param pToken
+	 * @return
+	 */
+	public long getExpirationDateFromTokenInMilliseconds(String pToken) {
+		return StringUtils.hasLength(pToken) ? jwtService.getExpirationDateFromToken(pToken).getTime() : 0;
+	}
+	
+	/**
+	 * return the transport object related to user data and generate a new token.
 	 * 
 	 * @param pJWT token
 	 * @return
 	 */
-	public UsuarioDTO retrieveUserData(String pJWT) {
+	public UsuarioDTO retrieveUserData(JWTResponseDTO pJWT) {
 		UsuarioDTO userToReturn = null;
+		String jWT = pJWT.getToken();
 		LOGGER.info("- RetrieveUserData Service init-");
-		LOGGER.info(pJWT);
-		if (pJWT != null && !pJWT.isEmpty()
-				&& !jwtService.isTokenExpired(pJWT)) {
-			final String username = jwtService.getUsernameFromToken(pJWT);
-			LOGGER.info(String.format("- User %s retrives their data -", username));
-			Optional<DatoUsuario> user = repoMock.findByEmail(username);
+		if (jWT != null && !jWT.isEmpty()
+				&& !jwtService.isTokenExpired(jWT)) {
+			final String username = jwtService.getUsernameFromToken(jWT);
+			LOGGER.info(String.format("- User %s is retriving their data -", username));
+			Optional<DatoUsuario> user = repo.findByEmail(username.trim());
 			if (user.isPresent()) {
 				userToReturn = convertToDTO(user.get());
 				userToReturn.setPassword(null);
+				LOGGER.info("- new token generating... -");
+				pJWT.setNewToken(jwtService.generateToken(username));
+				pJWT.setNewTimeIsValid(getExpirationDateFromTokenInMilliseconds(pJWT.getNewToken()));
+				LOGGER.info("- new token generated -");
 			}
 		}
 		LOGGER.info("- RetrieveUserData Service exit-");
@@ -92,7 +108,7 @@ public class AuthUserService {
 	/**
 	 * Sign in of a new user into the database
 	 * 
-	 * @param pNewUserData
+	 * @param pNewUserData new data
 	 * @return
 	 */
 	public JWTResponseDTO registerUserData(UsuarioDTO pNewUserData) {
@@ -104,6 +120,42 @@ public class AuthUserService {
 		}
 		return response;
 	}
+	
+	/**
+	 * Save the own data that was edited by the user
+	 * 
+	 * @param pUserData new data
+	 * @param pJWT token
+	 * @return
+	 */
+	public UsuarioDTO saveUserData(UsuarioDTO pUserData, JWTResponseDTO pJWT) {
+		UsuarioDTO editededUserData = null;
+		if(Objects.nonNull(pUserData) && !pUserData.getEmail().isEmpty()) {
+			final String jWT = pJWT.getToken();
+			if (jWT != null && !jWT.isEmpty()
+					&& !jwtService.isTokenExpired(jWT)) {
+				final String username = jwtService.getUsernameFromToken(jWT);
+				LOGGER.info(String.format("- User %s is editing their data -", username));
+				Optional<DatoUsuario> user = repo.findByEmail(username.trim());
+				if (user.isPresent()) {
+					UsuarioDTO oldUserData = convertToDTO(user.get());
+					final boolean isChangingTheirData = oldUserData.getEmail().equals(pUserData.getEmail());
+					if(isChangingTheirData) {
+						pUserData.setPassword(
+								pUserData.isPasswordChanged() ? 
+										pUserData.getPassword() :
+											oldUserData.getPassword());
+						editededUserData = convertToDTO(repo.save(convertToEntity(pUserData)));
+						LOGGER.info("- new token generating... -");
+						pJWT.setNewToken(jwtService.generateToken(username));
+						pJWT.setNewTimeIsValid(getExpirationDateFromTokenInMilliseconds(pJWT.getNewToken()));
+						LOGGER.info("- new token generated -");
+					}
+				}
+			}
+		}
+		return editededUserData;
+	}
 
 	private UsuarioDTO convertToDTO(DatoUsuario pEntity) {
 		return modelMapper.map(pEntity, UsuarioDTO.class);
@@ -113,25 +165,25 @@ public class AuthUserService {
 		return modelMapper.map(pDto, DatoUsuario.class);
 	}
 
-	private static class DatoUsuarioRepositoryMock {
-		private static DatoUsuario demoDatoUser = new DatoUsuario();
-		private static ArrayList<DatoUsuario> allUsers = new ArrayList<>();
-		static {
-			demoDatoUser.setApellidos("Higueras Montes");
-			demoDatoUser.setNombre("Rubén");
-			demoDatoUser.setEmail("emailDemo@uoc.edu");
-			demoDatoUser.setId(1);
-			demoDatoUser.setTimeStampCreacion(Calendar.getInstance().getTimeInMillis());
-			demoDatoUser.setPassword("contrasenaEncrypted");
-//			demoDatoUser.setPassword(JWTAuthTokenService.encryptCharacters("contrasena"));
-			allUsers.add(demoDatoUser);
-		}
-
-		Optional<DatoUsuario> findByEmail(String pEmail) {
-			final Optional<DatoUsuario> datoToReturn = Optional.of(demoDatoUser);
-			if (demoDatoUser.getEmail().equals(pEmail))
-				return datoToReturn;
-			return Optional.empty();
-		}
-	}
+//	private static class DatoUsuarioRepositoryMock {
+//		private static DatoUsuario demoDatoUser = new DatoUsuario();
+//		private static ArrayList<DatoUsuario> allUsers = new ArrayList<>();
+//		static {
+//			demoDatoUser.setApellidos("Higueras Montes");
+//			demoDatoUser.setNombre("Rubén");
+//			demoDatoUser.setEmail("emailDemo@uoc.edu");
+//			demoDatoUser.setId(1);
+//			demoDatoUser.setTimeStampCreacion(Calendar.getInstance().getTimeInMillis());
+//			demoDatoUser.setPassword("contrasenaEncrypted");
+////			demoDatoUser.setPassword(JWTAuthTokenService.encryptCharacters("contrasena"));
+//			allUsers.add(demoDatoUser);
+//		}
+//
+//		Optional<DatoUsuario> findByEmail(String pEmail) {
+//			final Optional<DatoUsuario> datoToReturn = Optional.of(demoDatoUser);
+//			if (demoDatoUser.getEmail().equals(pEmail))
+//				return datoToReturn;
+//			return Optional.empty();
+//		}
+//	}
 }

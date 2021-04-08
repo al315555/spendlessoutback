@@ -4,7 +4,9 @@
 package com.higuerasprojects.spendlessoutback.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -25,35 +27,56 @@ import com.higuerasprojects.spendlessoutback.service.AuthUserService;
 @RestController
 @RequestMapping("/server/api/v1/")
 public class MainController {
-	
+
 	/**
 	 * USUARIO REST SERVICES
 	 */
-	
+
 	@Autowired
 	private AuthUserService userService;
-	
-	
+
 	@PostMapping("/user/auth")
 	@ResponseStatus(HttpStatus.OK)
 	public JWTResponseDTO loginPostRestAPI(@RequestBody JWTRequestDTO pUser) {
 		return userService.login(pUser);
-		
+
 	}
-	
+
 	@GetMapping("/user/auth/userdata")
-	@ResponseStatus(HttpStatus.OK)
-	public UsuarioDTO userGetRestAPI(@RequestHeader("Authorization-Bearer") String pToken) {
-		return userService.retrieveUserData(pToken);
+	public ResponseEntity<UsuarioDTO> userGetRestAPI(@RequestHeader("Authorization-Bearer") String pToken) {
+		final HttpHeaders responseHeaders = new HttpHeaders();
+		if (pToken != null && !pToken.isEmpty()) {
+			JWTResponseDTO jwtRes = new JWTResponseDTO(pToken,
+					userService.getExpirationDateFromTokenInMilliseconds(pToken));
+			UsuarioDTO user = userService.retrieveUserData(jwtRes);
+			responseHeaders.set("Authorization-Bearer", jwtRes.getNewToken());
+			responseHeaders.set("Authorization-Bearer-Expired", String.valueOf(jwtRes.getNewTimeIsValid()));
+			return new ResponseEntity<UsuarioDTO>(user, responseHeaders, HttpStatus.OK);
+		}
+		return new ResponseEntity<UsuarioDTO>(null, responseHeaders, HttpStatus.UNAUTHORIZED);
 	}
-	
+
 	@PostMapping("/user/auth/register")
 	@ResponseStatus(HttpStatus.OK)
 	public JWTResponseDTO signinPostRestAPI(@RequestBody UsuarioDTO user) {
 		return userService.registerUserData(user);
 	}
 	
-	
+	@PostMapping("/user/auth/editdata")
+	@ResponseStatus(HttpStatus.OK)
+	public ResponseEntity<UsuarioDTO> editDataPostRestAPI(@RequestBody UsuarioDTO pUser, @RequestHeader("Authorization-Bearer") String pToken) {
+		final HttpHeaders responseHeaders = new HttpHeaders();
+		if (pToken != null && !pToken.isEmpty()) {
+			JWTResponseDTO jwtRes = new JWTResponseDTO(pToken,
+					userService.getExpirationDateFromTokenInMilliseconds(pToken));
+			UsuarioDTO returnedUser = userService.saveUserData(pUser, jwtRes);
+			responseHeaders.set("Authorization-Bearer", jwtRes.getNewToken());
+			responseHeaders.set("Authorization-Bearer-Expired", String.valueOf(jwtRes.getNewTimeIsValid()));
+			return new ResponseEntity<UsuarioDTO>(returnedUser, responseHeaders, HttpStatus.OK);
+		}
+		return new ResponseEntity<UsuarioDTO>(null, responseHeaders, HttpStatus.UNAUTHORIZED);
+	}
+
 //	/**
 //	 * CONCERTS REST SERVICES
 //	 */
@@ -101,6 +124,5 @@ public class MainController {
 //	public void createArtistPostRestAPI(@RequestBody Artist artist) {
 //		artistRepo.save(artist);
 //	}
-	
-	
+
 }
