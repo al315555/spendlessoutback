@@ -46,14 +46,15 @@ public class AuthUserService {
 	 */
 	public JWTResponseDTO login(JWTRequestDTO pUserRequest) {
 		LOGGER.info("- Login Service init -");
-		pUserRequest.encryptPass();
+		final String rawPassFromRequest = pUserRequest.encryptPass();
 		JWTResponseDTO response = new JWTResponseDTO(null, System.currentTimeMillis() - 1);
 		if (pUserRequest != null && pUserRequest.getEmail() != null) {
 			LOGGER.info("login User - " + pUserRequest.getEmail());
 			LOGGER.info("login Pass - " + pUserRequest.getPassword());
 			Optional<DatoUsuario> user = repo.findByEmail(pUserRequest.getEmail().trim());
 			if (user.isPresent()) {
-				final boolean passCorrect = user.get().getPassword().equals(pUserRequest.getPassword());
+				final UsuarioDTO userDto = convertToDTO(user.get());
+				final boolean passCorrect = userDto.matchWithPass(rawPassFromRequest);
 				if (passCorrect) {
 					response = new JWTResponseDTO(jwtService.generateToken(user.get().getEmail()),
 							System.currentTimeMillis() + JWTAuthTokenService.JWT_TOKEN_VALIDITY * 1010);
