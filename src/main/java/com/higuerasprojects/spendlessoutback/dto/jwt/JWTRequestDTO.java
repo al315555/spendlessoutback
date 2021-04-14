@@ -5,11 +5,13 @@ package com.higuerasprojects.spendlessoutback.dto.jwt;
 
 import java.io.Serializable;
 
+import com.higuerasprojects.spendlessoutback.dto.interfaces.Passwortable;
+
 /**
  * @author Ruhimo
  *
  */
-public class JWTRequestDTO implements Serializable {
+public class JWTRequestDTO implements Serializable, Passwortable {
 
 	private static final long serialVersionUID = 5926468583005150707L;
 

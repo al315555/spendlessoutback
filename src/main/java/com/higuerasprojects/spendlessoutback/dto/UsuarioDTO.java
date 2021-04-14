@@ -6,12 +6,13 @@ package com.higuerasprojects.spendlessoutback.dto;
 import java.io.Serializable;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.higuerasprojects.spendlessoutback.dto.interfaces.Passwortable;
 
 /**
  * @author Ruhimo
  *
  */
-public class UsuarioDTO implements Serializable{
+public class UsuarioDTO implements Serializable, Passwortable{
 	/**
 	 * 
 	 */
