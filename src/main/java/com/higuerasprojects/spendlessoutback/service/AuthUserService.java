@@ -36,8 +36,6 @@ public class AuthUserService {
 	@Autowired
 	private JWTAuthTokenService jwtService;
 
-//	private DatoUsuarioRepositoryMock repoMock = new DatoUsuarioRepositoryMock();
-
 	@Autowired
 	private ModelMapper modelMapper;
 
@@ -98,7 +96,7 @@ public class AuthUserService {
 				LOGGER.info("- new token generating... -");
 				pJWT.setNewToken(jwtService.generateToken(username));
 				pJWT.setNewTimeIsValid(getExpirationDateFromTokenInMilliseconds(pJWT.getNewToken()));
-				LOGGER.info("- new token generated -");
+				LOGGER.info("- new token generated - | " + pJWT.getToken());
 			}
 		}
 		LOGGER.info("- RetrieveUserData Service exit-");
@@ -149,7 +147,7 @@ public class AuthUserService {
 						LOGGER.info("- new token generating... -");
 						pJWT.setNewToken(jwtService.generateToken(username));
 						pJWT.setNewTimeIsValid(getExpirationDateFromTokenInMilliseconds(pJWT.getNewToken()));
-						LOGGER.info("- new token generated -");
+						LOGGER.info("- new token generated - | " + pJWT.getToken());
 					}
 				}
 			}
@@ -165,25 +163,4 @@ public class AuthUserService {
 		return modelMapper.map(pDto, DatoUsuario.class);
 	}
 
-//	private static class DatoUsuarioRepositoryMock {
-//		private static DatoUsuario demoDatoUser = new DatoUsuario();
-//		private static ArrayList<DatoUsuario> allUsers = new ArrayList<>();
-//		static {
-//			demoDatoUser.setApellidos("Higueras Montes");
-//			demoDatoUser.setNombre("Rubén");
-//			demoDatoUser.setEmail("emailDemo@uoc.edu");
-//			demoDatoUser.setId(1);
-//			demoDatoUser.setTimeStampCreacion(Calendar.getInstance().getTimeInMillis());
-//			demoDatoUser.setPassword("contrasenaEncrypted");
-////			demoDatoUser.setPassword(JWTAuthTokenService.encryptCharacters("contrasena"));
-//			allUsers.add(demoDatoUser);
-//		}
-//
-//		Optional<DatoUsuario> findByEmail(String pEmail) {
-//			final Optional<DatoUsuario> datoToReturn = Optional.of(demoDatoUser);
-//			if (demoDatoUser.getEmail().equals(pEmail))
-//				return datoToReturn;
-//			return Optional.empty();
-//		}
-//	}
 }

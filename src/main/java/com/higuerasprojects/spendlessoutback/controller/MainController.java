@@ -26,6 +26,7 @@ import com.higuerasprojects.spendlessoutback.service.AuthUserService;
  *
  */
 @RestController
+@CrossOrigin
 @RequestMapping("/server/api/v1/")
 public class MainController {
 
@@ -36,7 +37,7 @@ public class MainController {
 	@Autowired
 	private AuthUserService userService;
 
-	@CrossOrigin
+	
 	@PostMapping("/user/auth")
 	@ResponseStatus(HttpStatus.OK)
 	public JWTResponseDTO loginPostRestAPI(@RequestBody JWTRequestDTO pUser) {
@@ -44,7 +45,6 @@ public class MainController {
 
 	}
 
-	@CrossOrigin
 	@GetMapping("/user/auth/userdata")
 	public ResponseEntity<UsuarioDTO> userGetRestAPI(@RequestHeader("Authorization-Bearer") String pToken) {
 		final HttpHeaders responseHeaders = new HttpHeaders();
@@ -59,14 +59,12 @@ public class MainController {
 		return new ResponseEntity<UsuarioDTO>(null, responseHeaders, HttpStatus.UNAUTHORIZED);
 	}
 
-	@CrossOrigin
 	@PostMapping("/user/auth/register")
 	@ResponseStatus(HttpStatus.OK)
 	public JWTResponseDTO signinPostRestAPI(@RequestBody UsuarioDTO user) {
 		return userService.registerUserData(user);
 	}
 	
-	@CrossOrigin
 	@PostMapping("/user/auth/editdata")
 	@ResponseStatus(HttpStatus.OK)
 	public ResponseEntity<UsuarioDTO> editDataPostRestAPI(@RequestBody UsuarioDTO pUser, @RequestHeader("Authorization-Bearer") String pToken) {
