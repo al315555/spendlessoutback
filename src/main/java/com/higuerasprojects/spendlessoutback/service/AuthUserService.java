@@ -64,6 +64,24 @@ public class AuthUserService {
 		LOGGER.info("- Login Service exit -");
 		return response;
 	}
+	
+	
+	public JWTResponseDTO refreshToken(String pToken) {
+		JWTResponseDTO pJWT = null;
+		LOGGER.info("- refreshToken Service init-");
+		if (pToken != null && !pToken.isEmpty()
+				&& !jwtService.isTokenExpired(pToken)) {
+			final String username = jwtService.getUsernameFromToken(pToken);
+			LOGGER.info(String.format("- User %s is updating their token-", username));
+			LOGGER.info("- new token generating... -");
+			final String tokenGenerated = jwtService.generateToken(username);
+			pJWT = new JWTResponseDTO(tokenGenerated, 
+					getExpirationDateFromTokenInMilliseconds(tokenGenerated));
+			LOGGER.info("- new token generated - | " + tokenGenerated);
+		}
+		LOGGER.info("- refreshToken Service exit-");
+		return pJWT;
+	}
 
 	/**
 	 * retrieve expiration date from JWT token.

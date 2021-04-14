@@ -40,9 +40,20 @@ public class MainController {
 	
 	@PostMapping("/user/auth")
 	@ResponseStatus(HttpStatus.OK)
-	public JWTResponseDTO loginPostRestAPI(@RequestBody JWTRequestDTO pUser) {
-		return userService.login(pUser);
+	public ResponseEntity<JWTResponseDTO> loginPostRestAPI(@RequestBody JWTRequestDTO pUser) {
+		final JWTResponseDTO result = userService.login(pUser);
+		return new ResponseEntity<JWTResponseDTO>(result, new HttpHeaders(), 
+				result.getToken() != null ? HttpStatus.OK :
+			HttpStatus.UNAUTHORIZED);
 
+	}
+	
+	@GetMapping("/user/auth/refreshToken")
+	public ResponseEntity<JWTResponseDTO> refreshTokenGetRestAPI(@RequestHeader("Authorization-Bearer") String pToken) {
+		final JWTResponseDTO result = userService.refreshToken(pToken);
+		return new ResponseEntity<JWTResponseDTO>(result, new HttpHeaders(),
+				result.getToken() != null ? HttpStatus.OK :
+				HttpStatus.UNAUTHORIZED);
 	}
 
 	@GetMapping("/user/auth/userdata")
