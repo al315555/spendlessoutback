@@ -126,8 +126,8 @@ public class AuthUserService {
 	public boolean isEmailUserRegistered(String pEmailToCheck) {
 		boolean isEmailUserRegistered = false;
 		if(pEmailToCheck != null && !pEmailToCheck.isEmpty()) {
-			Optional<DatoUsuario> user = repo.findByEmail(pEmailToCheck.trim());
-			isEmailUserRegistered = user.isPresent();
+			final int numberOfUsers = repo.countByEmail(pEmailToCheck.trim());
+			isEmailUserRegistered = numberOfUsers > 0;
 		}
 		return isEmailUserRegistered;
 	}
