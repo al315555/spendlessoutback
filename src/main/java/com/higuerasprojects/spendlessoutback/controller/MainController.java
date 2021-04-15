@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -37,6 +38,11 @@ public class MainController {
 	@Autowired
 	private AuthUserService userService;
 
+	@GetMapping("/user/registered")
+	public ResponseEntity<Boolean> checkUserEmailGetRestAPI(@RequestParam String email){
+		final boolean isRegistered = userService.isEmailUserRegistered(email);
+		return new ResponseEntity<Boolean>(isRegistered, new HttpHeaders(), HttpStatus.OK );
+	}
 	
 	@PostMapping("/user/auth")
 	@ResponseStatus(HttpStatus.OK)
