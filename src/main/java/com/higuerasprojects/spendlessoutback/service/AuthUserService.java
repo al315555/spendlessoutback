@@ -118,6 +118,20 @@ public class AuthUserService {
 	}
 
 	/**
+	 * Check if the email is registered.
+	 * 
+	 * @param pEmailToCheck
+	 * @return
+	 */
+	public boolean isEmailUserRegistered(String pEmailToCheck) {
+		boolean isEmailUserRegistered = false;
+		if(pEmailToCheck != null && !pEmailToCheck.isEmpty()) {
+			Optional<DatoUsuario> user = repo.findByEmail(pEmailToCheck.trim());
+			isEmailUserRegistered = user.isPresent();
+		}
+		return isEmailUserRegistered;
+	}
+	/**
 	 * Sign in of a new user into the database
 	 * 
 	 * @param pNewUserData new data
