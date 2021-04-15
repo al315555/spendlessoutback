@@ -56,6 +56,7 @@ public class AuthUserService {
 				final UsuarioDTO userDto = convertToDTO(user.get());
 				final boolean passCorrect = userDto.matchWithPass(rawPassFromRequest);
 				if (passCorrect) {
+					LOGGER.info("LOGIN SUCCESS");
 					response = new JWTResponseDTO(jwtService.generateToken(user.get().getEmail()),
 							System.currentTimeMillis() + JWTAuthTokenService.JWT_TOKEN_VALIDITY * 1010);
 				}
@@ -138,11 +139,12 @@ public class AuthUserService {
 	 * @return
 	 */
 	public JWTResponseDTO registerUserData(UsuarioDTO pNewUserData) {
-		pNewUserData.encryptPass();
+		final String passNoEncrypted = pNewUserData.encryptPass();
+		LOGGER.info("EncryptedPass - "+ pNewUserData.getPassword() );
 		JWTResponseDTO response = new JWTResponseDTO(null, System.currentTimeMillis() - 1);
 		final UsuarioDTO createdUserData = convertToDTO(repo.save(convertToEntity(pNewUserData)));
 		if (createdUserData != null && createdUserData.getEmail() != null) {
-			final JWTRequestDTO jwtReq = new JWTRequestDTO(createdUserData.getEmail(), createdUserData.getPassword());
+			final JWTRequestDTO jwtReq = new JWTRequestDTO(createdUserData.getEmail(), passNoEncrypted);
 			response = login(jwtReq);
 		}
 		return response;
