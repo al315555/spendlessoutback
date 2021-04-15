@@ -17,6 +17,14 @@ public interface Passwortable {
 	
 	void setPassword(String password);
 	
+	default String encryptPassAndReturn() {
+		final int strength = 10; // work factor of bcrypt
+		BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder(strength, new SecureRandom());
+		String encodedPassword = bCryptPasswordEncoder.encode(this.getPassword());
+		this.setPassword(encodedPassword);
+		return encodedPassword;
+	}
+	
 	default String encryptPass() {
 		final String rawPass = this.getPassword();
 		final int strength = 10; // work factor of bcrypt

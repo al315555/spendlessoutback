@@ -170,7 +170,7 @@ public class AuthUserService {
 					final boolean isChangingTheirData = oldUserData.getEmail().equals(pUserData.getEmail());
 					if (isChangingTheirData) {
 						pUserData.setPassword(
-								pUserData.isPasswordChanged() ? pUserData.getPassword() : oldUserData.getPassword());
+								pUserData.isPasswordChanged() ? pUserData.encryptPassAndReturn() : oldUserData.getPassword());
 						editededUserData = convertToDTO(repo.save(convertToEntity(pUserData)));
 						LOGGER.info("- new token generating... -");
 						pJWT.setNewToken(jwtService.generateToken(username));
