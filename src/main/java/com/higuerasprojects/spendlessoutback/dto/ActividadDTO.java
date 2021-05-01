@@ -8,7 +8,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -21,33 +23,44 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class ActividadDTO {
-
 	private static final Logger LOGGER = LoggerFactory.getLogger(ActividadDTO.class);
+
+	public static final String URL_LOCATION_CASTELLO = "castell%C3%B3n-de-la-plana";
+	public static final String URL_LOCATION_MORELLA = "morella";
+	public static final String URL_LOCATION_ALICANTE = "alicante";
+	public static final String URL_LOCATION_VALENCIA = "valencia";
 
 	private static final String URL_TEMPLATE = "https://www.eventbrite.es/d/spain--";
 	private static final String URL_ALL_EVENTS_WO_DATE_RANGE = "/all-events/?page=";
-//	private static final String URL_LOCATION = "castell%C3%B3n-de-la-plana";
-	private static final String URL_LOCATION = "morella";
-	
+	private static final String URL_START_DATE_PARAM = "&start_date=";
+	private static final String URL_END_DATE_PARAM = "&end_date=";
+
 	private static final String WORD_BETWEEN_QUOTES = "\"(\\\\\\\\.|[^\"])*\"";
-	private static final String CLASS_WORD_CSS_PAGE = "class="+ WORD_BETWEEN_QUOTES;
-	private static final String DATASPECT_WORD_CSS_PAGE = "data-spec="+ WORD_BETWEEN_QUOTES;
-	private static final String ARIAHIDDEN_WORD_CSS_PAGE = "aria-hidden="+ WORD_BETWEEN_QUOTES;
-	private static final String ROLE_WORD_CSS_PAGE = "role="+ WORD_BETWEEN_QUOTES;
-	private static final String INIT_BLOCK_CONTAINER_PAGE = "<div>";
+	private static final String CLASS_WORD_CSS_PAGE = "class=" + WORD_BETWEEN_QUOTES;
+	private static final String HREF_WORD_CSS_PAGE = "href=" + WORD_BETWEEN_QUOTES;
 	private static final String END_BLOCK_CONTAINER_PAGE = "</div>";
 	private static final String INIT_BLOCK_PAGINATION = "<footer";
 	private static final String END_BLOCK_PAGINATION = "</footer>";
-	private static final String INIT_ACTIVITY_PRESENTATION = "<h3>";
-	private static final String END_ACTIVITY_PRESENTATION = "</h3>";
 	private static final String SECOND_PAGE_INSTANCE = "\\?page=[0-9]*";
-	private static final String DATE_LABEL_PAGE= ">[A-Za-z0-9_.,]*([0-1]?[0-9]|2[0-3]):[0-5][0-9]<";
-	private static final String PRICE_LABEL_PAGE= "[0-9]+(,[0-9]{1,2})?[ €]";
-//	private static final String DATE_LABEL_PAGE= ">(.*)([0-1]?[0-9]|2[0-3]):[0-5][0-9](.*)?<";
+	private static final String INIT_PRICE_BLOCK = "class=\"js-panel-display-price\">";
+	private static final String INIT_TITLE_BLOCK = "class=\"listing-hero-title\"";
+	private static final String END_TITLE_BLOCK = "</h1>";
+	private static final String INIT_DATE_BLOCK = "class=\"event-details__data\"";
+	private static final String END_DATE_BLOCK = "<time";
+	private static final String INIT_LINK_MAP = "href=\"https://maps.google.com";
+	private static final String INIT_MARKERS_MAP = "markers=";
+	private static final String QUOTE_MARK = "\"";
+	private static final String DATE_METAINFO = "<metacontent=\"";
+	private static final String END_TAG_HTML = "\"/>";
+	private static final String GREATER_THAN_ICON = ">";
+	private static final int TEMPLATE_DATES_COUNT = 51;
+	private static final int PRICE_COUNT_LIMIT = 18;
 	private static final String FIRST_PAGE_INSTANCE = "\\?page=";
 	private static final String INIT_BLOCK_ACTIVITIES = "class=\"search-main-content\"";
 	private static final String INIT_OF_ONE_ACTIVITY = "<article";
 	private static final String END_OF_ONE_ACTIVITY = "</article>";
+	private static final String UNDERSCORE_VALUE_STRING = "_";
+	private static final String NOT_FOUND_STR = "NONE";
 	private static final String EMPTY_VALUE_STRING = "";
 
 	private String nombre;
@@ -55,41 +68,78 @@ public class ActividadDTO {
 	private String cuando;
 	private String hora;
 	private String precio;
+	private String urlMoreData;
+	private String ubicacion;
 
-	public static final ArrayList<ActividadDTO> gatherActivities() throws Exception {
-		URL url;
-		ArrayList<ActividadDTO> activityList = null;
-		Scanner sc = null;
-		InputStream is = null;
-		StringBuilder line = new StringBuilder();
-		int paginationCurrentNumber = 1;
-		try {
-			StringBuilder URLBuilder = new StringBuilder(URL_TEMPLATE);
-			URLBuilder.append(URL_LOCATION).append(URL_ALL_EVENTS_WO_DATE_RANGE).append(paginationCurrentNumber);
-			String urlToSearch = URLBuilder.toString();
-			url = new URL(urlToSearch);
 //			 url = new URL("https://www.eventbrite.es/d/spain--valencia/all-events/?page=1");
 //			 url = new URL("https://www.eventbrite.es/d/spain--castell%C3%B3n-de-la-plana/all-events/?page=1");
 //			 url = new URL("https://www.eventbrite.es/d/spain--castell%C3%B3n-de-la-plana/all-events/?cur=EUR&page=1&start_date=2021-04-30&end_date=2021-04-30");
 //			 url = new URL("https://www.eventbrite.es/d/spain--alicante/all-events/?page=1");
 //			 url = new URL("https://spendlessoutapi.herokuapp.com/swagger-ui.html#/");
-			url = new URL(urlToSearch);
-			is = url.openStream(); // throws an IOException
+
+	/**
+	 * retrive the current date in the following format: yyyy-MM-dd
+	 * e.g. year 2021 month April day 30: 2021-04-30
+	 * @return date to string into the previous format
+	 */
+	public static final String currentDate() {
+		return new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+	}
+	
+	public static final ArrayList<ActividadDTO> gatherActivities(final String location) throws Exception {
+		return gatherActivities(location, currentDate(), currentDate());
+	}
+		
+	public static final ArrayList<ActividadDTO> gatherActivities(final String pLocation, final String startDate, final String endDate ) throws Exception {
+		ArrayList<ActividadDTO> activityList = new ArrayList<>();
+		try {
+			String line = new String();
+			int paginationCurrentNumber = 1;
+			StringBuilder urlBuilder = new StringBuilder(URL_TEMPLATE);
+			urlBuilder.append(pLocation).append(URL_ALL_EVENTS_WO_DATE_RANGE).append(paginationCurrentNumber)
+			.append(URL_START_DATE_PARAM).append(startDate).append(URL_END_DATE_PARAM).append(endDate);
+			LOGGER.info("Retrieving content from: " + urlBuilder.toString());
+			line = retrieveURLWebContent(urlBuilder.toString());
+			final int paginationMaxNumber = retrieveMaxPageValueOfTheSite(line);
+			line = new StringBuilder(
+					line.substring(line.indexOf(INIT_BLOCK_ACTIVITIES), line.indexOf(INIT_BLOCK_PAGINATION)))
+							.toString();
+			activityList.addAll(retrieveActivityListFromStrContent(line));
+			while (paginationMaxNumber > ++paginationCurrentNumber) {
+				urlBuilder = new StringBuilder(URL_TEMPLATE);
+				urlBuilder.append(pLocation).append(URL_ALL_EVENTS_WO_DATE_RANGE).append(paginationCurrentNumber)
+				.append(URL_START_DATE_PARAM).append(startDate).append(URL_END_DATE_PARAM).append(endDate);
+				LOGGER.info("Retrieving content from: " + urlBuilder.toString());
+				line = retrieveURLWebContent(urlBuilder.toString());
+				line = new StringBuilder(
+						line.substring(line.indexOf(INIT_BLOCK_ACTIVITIES), line.indexOf(INIT_BLOCK_PAGINATION)))
+								.toString();
+				activityList.addAll(retrieveActivityListFromStrContent(line));
+			}
+		} catch (Exception uncheckedGenericException) {
+			LOGGER.error(
+					uncheckedGenericException.getLocalizedMessage() + " - " + uncheckedGenericException.getMessage());
+			uncheckedGenericException.printStackTrace();
+		}
+		return activityList;
+	}
+
+	private static final String retrieveURLWebContent(final String pUrlToSearch) {
+		URL url;
+		Scanner sc = null;
+		InputStream is = null;
+		StringBuilder line = new StringBuilder();
+		try {
+			url = new URL(pUrlToSearch);
+			is = url.openStream();
 			sc = new Scanner(is);
 			while (sc.hasNext()) {
 				line.append(sc.next());
 			}
-			
-			String paginationMaxNumber = retrieveMaxPageValueOfTheSite(line);
-			
-			line = new StringBuilder(line.substring(line.indexOf(INIT_BLOCK_ACTIVITIES), line.indexOf(INIT_BLOCK_PAGINATION)));
-
-			activityList = retrieveActivityListFromString(line);
-			
-			sc.close();
 		} catch (EOFException endFileExecption) {
-			System.out.println(line.toString());
+			LOGGER.error("END_OF_FILE: " + line.toString());
 		} catch (MalformedURLException mue) {
+			LOGGER.error(mue.getLocalizedMessage() + " - " + mue.getMessage());
 			mue.printStackTrace();
 		} catch (IOException ioe) {
 			LOGGER.error(ioe.getLocalizedMessage() + " - " + ioe.getMessage());
@@ -101,69 +151,81 @@ public class ActividadDTO {
 			try {
 				is.close();
 				sc.close();
+				sc.close();
 			} catch (IOException ioe) {
 				LOGGER.error(ioe.getLocalizedMessage() + " - " + ioe.getMessage());
 			}
 		}
-		return activityList;
+		return line.toString();
 	}
 
-	private static ArrayList<ActividadDTO> retrieveActivityListFromString(final StringBuilder line) {
+	private static final ArrayList<ActividadDTO> retrieveActivityListFromStrContent(final String line) {
 		final ArrayList<ActividadDTO> listToReturn = new ArrayList<>();
 
 		final StringBuilder auxLine = new StringBuilder(line.toString());
 		int initIndexOfActivity = auxLine.indexOf(INIT_OF_ONE_ACTIVITY);
 		int finiIndexOfActivity = auxLine.indexOf(END_OF_ONE_ACTIVITY);
-		
-		while(initIndexOfActivity > 0 && finiIndexOfActivity > 0) {
-			StringBuilder activitySection = new StringBuilder(auxLine.substring(initIndexOfActivity + INIT_OF_ONE_ACTIVITY.length(), finiIndexOfActivity));
-			activitySection = new StringBuilder(activitySection.toString().replaceAll(CLASS_WORD_CSS_PAGE, EMPTY_VALUE_STRING));
-	
-			//Retrieve title
-			StringBuilder activityPresentationSection = new StringBuilder(activitySection.substring(activitySection.indexOf(INIT_ACTIVITY_PRESENTATION) + INIT_ACTIVITY_PRESENTATION.length(), activitySection.indexOf(END_ACTIVITY_PRESENTATION)));
-			activitySection.delete(activitySection.indexOf(INIT_ACTIVITY_PRESENTATION), activitySection.indexOf(END_ACTIVITY_PRESENTATION) + INIT_ACTIVITY_PRESENTATION.length());
-			activityPresentationSection = new StringBuilder(activityPresentationSection.toString().replaceAll(DATASPECT_WORD_CSS_PAGE, EMPTY_VALUE_STRING));
-			activityPresentationSection = new StringBuilder(activityPresentationSection.toString().replaceAll(ARIAHIDDEN_WORD_CSS_PAGE, EMPTY_VALUE_STRING));
-			activityPresentationSection = new StringBuilder(activityPresentationSection.toString().replaceAll(ROLE_WORD_CSS_PAGE, EMPTY_VALUE_STRING));
-			activityPresentationSection = new StringBuilder(activityPresentationSection.toString().replaceAll(INIT_BLOCK_CONTAINER_PAGE, EMPTY_VALUE_STRING));
-			activityPresentationSection = new StringBuilder(activityPresentationSection.toString().replaceAll(END_BLOCK_CONTAINER_PAGE, EMPTY_VALUE_STRING));
-			String titleActivity = activityPresentationSection.substring((activityPresentationSection.length()/2));
-			
-			//Retrieve date TODO more accurate filter regex
-			Pattern patternRegex = Pattern.compile(DATE_LABEL_PAGE);
-			Matcher matcheDate = patternRegex.matcher(activitySection);
-			StringBuilder dateStrFromActivity = new StringBuilder();
-			while (matcheDate.find()) {
-				final String instanceOfDate =  matcheDate.group();
-				dateStrFromActivity.insert(0,  instanceOfDate);
-				dateStrFromActivity.deleteCharAt(0);
-				dateStrFromActivity.deleteCharAt(dateStrFromActivity.length()-1);
+
+		while (initIndexOfActivity > 0 && finiIndexOfActivity > 0) {
+			StringBuilder activitySection = new StringBuilder(
+					auxLine.substring(initIndexOfActivity + INIT_OF_ONE_ACTIVITY.length(), finiIndexOfActivity));
+			activitySection = new StringBuilder(
+					activitySection.toString().replaceAll(CLASS_WORD_CSS_PAGE, EMPTY_VALUE_STRING));
+
+			Pattern patternURLRegex = Pattern.compile(HREF_WORD_CSS_PAGE);
+			Matcher matcheURL = patternURLRegex.matcher(activitySection);
+			StringBuilder urlStrFromActivity = new StringBuilder();
+			while (matcheURL.find()) {
+				final String instanceOfURL = matcheURL.group();
+				urlStrFromActivity = new StringBuilder().append(
+						instanceOfURL.substring(instanceOfURL.indexOf("\"") + 1, instanceOfURL.lastIndexOf("\"")));
 			}
-			String dateNTimeOfActivity = dateStrFromActivity.toString();
+			String urlOfActivity = urlStrFromActivity.toString();
+
+			String activityStrContent = retrieveURLWebContent(urlOfActivity);
+
+			// Retrieve price
+			String priceSection = activityStrContent
+					.substring(activityStrContent.indexOf(INIT_PRICE_BLOCK) + INIT_PRICE_BLOCK.length());
+			priceSection = priceSection.substring(0, priceSection.indexOf(END_BLOCK_CONTAINER_PAGE));
+			String priceOfActivity = priceSection.toString();
+			priceOfActivity = priceOfActivity.length() > PRICE_COUNT_LIMIT ? NOT_FOUND_STR : priceOfActivity;
+
+			// Retrieve title
+			String titleSection = activityStrContent
+					.substring(activityStrContent.indexOf(INIT_TITLE_BLOCK) + INIT_TITLE_BLOCK.length());
+			titleSection = titleSection.substring(titleSection.indexOf(GREATER_THAN_ICON) + 1,
+					titleSection.indexOf(END_TITLE_BLOCK));
+			String titleOfActivity = titleSection.toString();
+
+			// Retrieve dates
+			String datesSection = activityStrContent
+					.substring(activityStrContent.indexOf(INIT_DATE_BLOCK) + INIT_DATE_BLOCK.length());
+			final int endDateBlockIndex = datesSection.indexOf(END_DATE_BLOCK);
+			String datesSectionOfActivity = endDateBlockIndex > 0 ? datesSection.substring(1, endDateBlockIndex)
+					.replaceAll(DATE_METAINFO, EMPTY_VALUE_STRING).replaceFirst(END_TAG_HTML, UNDERSCORE_VALUE_STRING)
+					.replaceAll(END_TAG_HTML, EMPTY_VALUE_STRING) : NOT_FOUND_STR;
+			datesSectionOfActivity = datesSectionOfActivity.length() > TEMPLATE_DATES_COUNT ? NOT_FOUND_STR : datesSectionOfActivity;
 			
-			
-			//Retrieve price 
-			Pattern patternRegexPrice = Pattern.compile(PRICE_LABEL_PAGE);
-			Matcher matchePrice = patternRegexPrice.matcher(activitySection);
-			StringBuilder priceStrFromActivity = new StringBuilder();
-			while (matchePrice.find()) {
-				final String instanceOfPrice =  matchePrice.group();
-				priceStrFromActivity.insert(0,  instanceOfPrice);
-				priceStrFromActivity.deleteCharAt(0);
-				priceStrFromActivity.deleteCharAt(priceStrFromActivity.length()-1);
-			}
-			String priceOfActivity = priceStrFromActivity.toString();
-			
-			
-			//Build Activity BO
+			// Retrieve ubication maps
+			String locationSection = activityStrContent
+					.substring(activityStrContent.indexOf(INIT_LINK_MAP) + INIT_LINK_MAP.length());
+			locationSection = locationSection.substring(
+					locationSection.indexOf(INIT_MARKERS_MAP) + INIT_MARKERS_MAP.length(),
+					locationSection.indexOf(QUOTE_MARK));
+			String locationOfActivity = locationSection.toString();
+
+			// Build Activity BO
 			final ActividadDTO localActDTO = new ActividadDTO();
-			localActDTO.setCuando(dateNTimeOfActivity);
-			localActDTO.setNombre(titleActivity);
-			localActDTO.setDescripcion(titleActivity);
+			localActDTO.setCuando(datesSectionOfActivity);
+			localActDTO.setNombre(titleOfActivity);
+			localActDTO.setDescripcion(titleOfActivity);
 			localActDTO.setPrecio(priceOfActivity);
-			
+			localActDTO.setUrlMoreData(urlOfActivity);
+			localActDTO.setUbicacion(locationOfActivity);
+
 			listToReturn.add(localActDTO);
-			
+
 			auxLine.delete(initIndexOfActivity, finiIndexOfActivity + END_OF_ONE_ACTIVITY.length());
 			initIndexOfActivity = auxLine.indexOf(INIT_OF_ONE_ACTIVITY);
 			finiIndexOfActivity = auxLine.indexOf(END_OF_ONE_ACTIVITY);
@@ -179,18 +241,18 @@ public class ActividadDTO {
 	 * @param END_BLOCK_PAGINATION
 	 * @return
 	 */
-	private static String retrieveMaxPageValueOfTheSite(final StringBuilder line) {
+	private static final int retrieveMaxPageValueOfTheSite(final String line) {
 		Pattern patternRegex = Pattern.compile(SECOND_PAGE_INSTANCE);
 		StringBuilder footerCtx = new StringBuilder(
 				line.substring(line.indexOf(INIT_BLOCK_PAGINATION), line.indexOf(END_BLOCK_PAGINATION)));
 		Matcher m = patternRegex.matcher(footerCtx);
 		int maxPageNumber = 1;
 		while (m.find()) {
-			final String instanceOfPage =  m.group();
-		    int localMax = Integer.parseInt(instanceOfPage.replaceAll(FIRST_PAGE_INSTANCE, EMPTY_VALUE_STRING));
-		    maxPageNumber = maxPageNumber < localMax ? localMax : maxPageNumber;
+			final String instanceOfPage = m.group();
+			int localMax = Integer.parseInt(instanceOfPage.replaceAll(FIRST_PAGE_INSTANCE, EMPTY_VALUE_STRING));
+			maxPageNumber = maxPageNumber < localMax ? localMax : maxPageNumber;
 		}
-		return maxPageNumber + EMPTY_VALUE_STRING;
+		return maxPageNumber;
 	}
 
 	/**
@@ -262,9 +324,37 @@ public class ActividadDTO {
 	public void setPrecio(String precio) {
 		this.precio = precio;
 	}
-	
+
+	/**
+	 * @return the urlMoreData
+	 */
+	public String getUrlMoreData() {
+		return urlMoreData;
+	}
+
+	/**
+	 * @param urlMoreData the urlMoreData to set
+	 */
+	public void setUrlMoreData(String urlMoreData) {
+		this.urlMoreData = urlMoreData;
+	}
+
+	/**
+	 * @return the ubicacion
+	 */
+	public String getUbicacion() {
+		return ubicacion;
+	}
+
+	/**
+	 * @param ubicacion the ubicacion to set
+	 */
+	public void setUbicacion(String ubicacion) {
+		this.ubicacion = ubicacion;
+	}
+
 	@Override
 	public String toString() {
-		return this.nombre + " | " + this.cuando  + " | " + this.precio;
+		return this.nombre + " | " + this.cuando + " | " + this.precio + " | " + this.ubicacion;
 	}
 }
