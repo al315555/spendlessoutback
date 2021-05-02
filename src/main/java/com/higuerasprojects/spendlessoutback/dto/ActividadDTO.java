@@ -6,6 +6,7 @@ package com.higuerasprojects.spendlessoutback.dto;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
@@ -18,11 +19,19 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 /**
  * @author Ruhimo
  *
  */
-public class ActividadDTO {
+public class ActividadDTO implements Serializable{
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -5892173185743315208L;
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(ActividadDTO.class);
 
 	public static final String URL_LOCATION_CASTELLO = "castell%C3%B3n-de-la-plana";
@@ -63,19 +72,20 @@ public class ActividadDTO {
 	private static final String NOT_FOUND_STR = "NONE";
 	private static final String EMPTY_VALUE_STRING = "";
 
+	@JsonFormat
 	private String nombre;
+	@JsonFormat
 	private String descripcion;
+	@JsonFormat
 	private String cuando;
+	@JsonFormat
 	private String hora;
+	@JsonFormat
 	private String precio;
+	@JsonFormat
 	private String urlMoreData;
+	@JsonFormat
 	private String ubicacion;
-
-//			 url = new URL("https://www.eventbrite.es/d/spain--valencia/all-events/?page=1");
-//			 url = new URL("https://www.eventbrite.es/d/spain--castell%C3%B3n-de-la-plana/all-events/?page=1");
-//			 url = new URL("https://www.eventbrite.es/d/spain--castell%C3%B3n-de-la-plana/all-events/?cur=EUR&page=1&start_date=2021-04-30&end_date=2021-04-30");
-//			 url = new URL("https://www.eventbrite.es/d/spain--alicante/all-events/?page=1");
-//			 url = new URL("https://spendlessoutapi.herokuapp.com/swagger-ui.html#/");
 
 	/**
 	 * retrive the current date in the following format: yyyy-MM-dd

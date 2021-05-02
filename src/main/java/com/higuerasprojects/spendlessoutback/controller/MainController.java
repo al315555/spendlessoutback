@@ -3,6 +3,8 @@
  */
 package com.higuerasprojects.spendlessoutback.controller;
 
+import java.util.ArrayList;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.higuerasprojects.spendlessoutback.dto.ActividadDTO;
 import com.higuerasprojects.spendlessoutback.dto.UsuarioDTO;
 import com.higuerasprojects.spendlessoutback.dto.jwt.JWTRequestDTO;
 import com.higuerasprojects.spendlessoutback.dto.jwt.JWTResponseDTO;
@@ -38,6 +41,18 @@ public class MainController {
 	@Autowired
 	private AuthUserService userService;
 
+	@GetMapping("/activities")
+	public ResponseEntity<ArrayList<ActividadDTO>> activitiesGetRestAPI(){
+		ArrayList<ActividadDTO> websiteEmbebbed;
+		try {
+			websiteEmbebbed = ActividadDTO.gatherActivities(ActividadDTO.URL_LOCATION_VALENCIA);
+		} catch (Exception e) {
+			return new ResponseEntity<ArrayList<ActividadDTO>>(new ArrayList<>(), new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		return new ResponseEntity<ArrayList<ActividadDTO>>(websiteEmbebbed, new HttpHeaders(), HttpStatus.OK);
+	}
+	
+	
 	@GetMapping("/user/registered")
 	public ResponseEntity<Boolean> checkUserEmailGetRestAPI(@RequestParam String email){
 		final boolean isRegistered = userService.isEmailUserRegistered(email);
