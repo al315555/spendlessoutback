@@ -72,21 +72,6 @@ public class ActividadDTO implements Serializable{
 	private static final String NOT_FOUND_STR = "NONE";
 	private static final String EMPTY_VALUE_STRING = "";
 
-	@JsonFormat
-	private String nombre;
-	@JsonFormat
-	private String descripcion;
-	@JsonFormat
-	private String cuando;
-	@JsonFormat
-	private String hora;
-	@JsonFormat
-	private String precio;
-	@JsonFormat
-	private String urlMoreData;
-	@JsonFormat
-	private String ubicacion;
-
 	/**
 	 * retrive the current date in the following format: yyyy-MM-dd
 	 * e.g. year 2021 month April day 30: 2021-04-30
@@ -265,6 +250,20 @@ public class ActividadDTO implements Serializable{
 		return maxPageNumber;
 	}
 
+	@JsonFormat
+	private String nombre;
+	@JsonFormat
+	private String descripcion;
+	@JsonFormat
+	private String cuando;
+	@JsonFormat
+	private String precio;
+	@JsonFormat
+	private String urlMoreData;
+	@JsonFormat
+	private String ubicacion;
+
+	
 	/**
 	 * @return the nombre
 	 */
@@ -284,13 +283,6 @@ public class ActividadDTO implements Serializable{
 	 */
 	public String getCuando() {
 		return cuando;
-	}
-
-	/**
-	 * @return the hora
-	 */
-	public String getHora() {
-		return hora;
 	}
 
 	/**
@@ -319,13 +311,6 @@ public class ActividadDTO implements Serializable{
 	 */
 	public void setCuando(String cuando) {
 		this.cuando = cuando;
-	}
-
-	/**
-	 * @param hora the hora to set
-	 */
-	public void setHora(String hora) {
-		this.hora = hora;
 	}
 
 	/**
