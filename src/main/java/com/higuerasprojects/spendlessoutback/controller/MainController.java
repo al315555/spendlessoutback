@@ -20,10 +20,12 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.higuerasprojects.spendlessoutback.dto.ActividadDTO;
+import com.higuerasprojects.spendlessoutback.dto.ItinerarioDTO;
 import com.higuerasprojects.spendlessoutback.dto.UsuarioDTO;
 import com.higuerasprojects.spendlessoutback.dto.jwt.JWTRequestDTO;
 import com.higuerasprojects.spendlessoutback.dto.jwt.JWTResponseDTO;
 import com.higuerasprojects.spendlessoutback.service.AuthUserService;
+import com.higuerasprojects.spendlessoutback.service.ItinerarioService;
 
 /**
  * @author ruhiguer
@@ -40,8 +42,11 @@ public class MainController {
 
 	@Autowired
 	private AuthUserService userService;
+	
+	@Autowired
+	private ItinerarioService itinerarioService;
 
-	@GetMapping("/activities")
+	@GetMapping("/itinerario/generarItinerario")
 	public ResponseEntity<ArrayList<ActividadDTO>> activitiesGetRestAPI(){
 		ArrayList<ActividadDTO> websiteEmbebbed;
 		try {
@@ -50,6 +55,22 @@ public class MainController {
 			return new ResponseEntity<ArrayList<ActividadDTO>>(new ArrayList<>(), new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 		return new ResponseEntity<ArrayList<ActividadDTO>>(websiteEmbebbed, new HttpHeaders(), HttpStatus.OK);
+	}
+	
+	@PostMapping("/itinerario/generar")
+	public ResponseEntity<ItinerarioDTO> generarItinerarioPostRestAPI(
+			@RequestHeader("Authorization-Bearer") String pToken,
+			@RequestBody ItinerarioDTO pItinerario) {
+		final HttpHeaders responseHeaders = new HttpHeaders();
+		if (pToken != null && !pToken.isEmpty()) {
+			JWTResponseDTO jwtRes = new JWTResponseDTO(pToken,
+					userService.getExpirationDateFromTokenInMilliseconds(pToken));
+			ItinerarioDTO returnedItinerario = itinerarioService.generateItinerario(pItinerario, jwtRes);
+			responseHeaders.set("Authorization-Bearer", jwtRes.getNewToken());
+			responseHeaders.set("Authorization-Bearer-Expired", String.valueOf(jwtRes.getNewTimeIsValid()));
+			return new ResponseEntity<ItinerarioDTO>(returnedItinerario, responseHeaders, HttpStatus.OK);
+		}
+		return new ResponseEntity<ItinerarioDTO>(null, responseHeaders, HttpStatus.UNAUTHORIZED);
 	}
 	
 	

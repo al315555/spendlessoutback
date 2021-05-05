@@ -4,18 +4,23 @@
 package com.higuerasprojects.spendlessoutback.dto;
 
 import java.io.EOFException;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Objects;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.codec.EncoderException;
+import org.apache.commons.codec.net.QuotedPrintableCodec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,8 +30,8 @@ import com.fasterxml.jackson.annotation.JsonFormat;
  * @author Ruhimo
  *
  */
-public class ActividadDTO implements Serializable{
-	
+public class ActividadDTO implements Serializable {
+
 	/**
 	 * 
 	 */
@@ -73,26 +78,39 @@ public class ActividadDTO implements Serializable{
 	private static final String EMPTY_VALUE_STRING = "";
 
 	/**
-	 * retrive the current date in the following format: yyyy-MM-dd
-	 * e.g. year 2021 month April day 30: 2021-04-30
+	 * Encode the string param into a quotedPrintable string to use in a URL
+	 * 
+	 * @param pPlainString
+	 * @return
+	 * @throws EncoderException
+	 */
+	public static final String encodeStringInQuotedPrintable(final String pPlainString) throws EncoderException {
+		return new QuotedPrintableCodec().encode(pPlainString);
+	}
+
+	/**
+	 * retrieve the current date in the following format: yyyy-MM-dd e.g. year 2021
+	 * month April day 30: 2021-04-30
+	 * 
 	 * @return date to string into the previous format
 	 */
 	public static final String currentDate() {
 		return new SimpleDateFormat("yyyy-MM-dd").format(new Date());
 	}
-	
+
 	public static final ArrayList<ActividadDTO> gatherActivities(final String location) throws Exception {
 		return gatherActivities(location, currentDate(), currentDate());
 	}
-		
-	public static final ArrayList<ActividadDTO> gatherActivities(final String pLocation, final String startDate, final String endDate ) throws Exception {
+
+	public static final ArrayList<ActividadDTO> gatherActivities(final String pLocation, final String startDate,
+			final String endDate) {
 		ArrayList<ActividadDTO> activityList = new ArrayList<>();
 		try {
 			String line = new String();
 			int paginationCurrentNumber = 1;
 			StringBuilder urlBuilder = new StringBuilder(URL_TEMPLATE);
 			urlBuilder.append(pLocation).append(URL_ALL_EVENTS_WO_DATE_RANGE).append(paginationCurrentNumber)
-			.append(URL_START_DATE_PARAM).append(startDate).append(URL_END_DATE_PARAM).append(endDate);
+					.append(URL_START_DATE_PARAM).append(startDate).append(URL_END_DATE_PARAM).append(endDate);
 			LOGGER.info("Retrieving content from: " + urlBuilder.toString());
 			line = retrieveURLWebContent(urlBuilder.toString());
 			final int paginationMaxNumber = retrieveMaxPageValueOfTheSite(line);
@@ -103,7 +121,7 @@ public class ActividadDTO implements Serializable{
 			while (paginationMaxNumber > ++paginationCurrentNumber) {
 				urlBuilder = new StringBuilder(URL_TEMPLATE);
 				urlBuilder.append(pLocation).append(URL_ALL_EVENTS_WO_DATE_RANGE).append(paginationCurrentNumber)
-				.append(URL_START_DATE_PARAM).append(startDate).append(URL_END_DATE_PARAM).append(endDate);
+						.append(URL_START_DATE_PARAM).append(startDate).append(URL_END_DATE_PARAM).append(endDate);
 				LOGGER.info("Retrieving content from: " + urlBuilder.toString());
 				line = retrieveURLWebContent(urlBuilder.toString());
 				line = new StringBuilder(
@@ -111,6 +129,8 @@ public class ActividadDTO implements Serializable{
 								.toString();
 				activityList.addAll(retrieveActivityListFromStrContent(line));
 			}
+		} catch (java.io.FileNotFoundException notFoundExecption) {
+			LOGGER.error("URL NOT FOUND: " + notFoundExecption.getMessage());
 		} catch (Exception uncheckedGenericException) {
 			LOGGER.error(
 					uncheckedGenericException.getLocalizedMessage() + " - " + uncheckedGenericException.getMessage());
@@ -119,7 +139,14 @@ public class ActividadDTO implements Serializable{
 		return activityList;
 	}
 
-	private static final String retrieveURLWebContent(final String pUrlToSearch) {
+	/**
+	 * Retrieve the content of a website in a String line
+	 * 
+	 * @param pUrlToSearch
+	 * @return
+	 * @throws FileNotFoundException
+	 */
+	public static final String retrieveURLWebContent(final String pUrlToSearch) throws FileNotFoundException {
 		URL url;
 		Scanner sc = null;
 		InputStream is = null;
@@ -133,6 +160,8 @@ public class ActividadDTO implements Serializable{
 			}
 		} catch (EOFException endFileExecption) {
 			LOGGER.error("END_OF_FILE: " + line.toString());
+		} catch (java.io.FileNotFoundException notFoundExecption) {
+			throw new java.io.FileNotFoundException(pUrlToSearch);
 		} catch (MalformedURLException mue) {
 			LOGGER.error(mue.getLocalizedMessage() + " - " + mue.getMessage());
 			mue.printStackTrace();
@@ -144,9 +173,10 @@ public class ActividadDTO implements Serializable{
 			genericOneE.printStackTrace();
 		} finally {
 			try {
-				is.close();
-				sc.close();
-				sc.close();
+				if (Objects.nonNull(is))
+					is.close();
+				if (Objects.nonNull(sc))
+					sc.close();
 			} catch (IOException ioe) {
 				LOGGER.error(ioe.getLocalizedMessage() + " - " + ioe.getMessage());
 			}
@@ -154,7 +184,8 @@ public class ActividadDTO implements Serializable{
 		return line.toString();
 	}
 
-	private static final ArrayList<ActividadDTO> retrieveActivityListFromStrContent(final String line) {
+	private static final ArrayList<ActividadDTO> retrieveActivityListFromStrContent(final String line)
+			throws ParseException, java.io.FileNotFoundException {
 		final ArrayList<ActividadDTO> listToReturn = new ArrayList<>();
 
 		final StringBuilder auxLine = new StringBuilder(line.toString());
@@ -200,8 +231,9 @@ public class ActividadDTO implements Serializable{
 			String datesSectionOfActivity = endDateBlockIndex > 0 ? datesSection.substring(1, endDateBlockIndex)
 					.replaceAll(DATE_METAINFO, EMPTY_VALUE_STRING).replaceFirst(END_TAG_HTML, UNDERSCORE_VALUE_STRING)
 					.replaceAll(END_TAG_HTML, EMPTY_VALUE_STRING) : NOT_FOUND_STR;
-			datesSectionOfActivity = datesSectionOfActivity.length() > TEMPLATE_DATES_COUNT ? NOT_FOUND_STR : datesSectionOfActivity;
-			
+			datesSectionOfActivity = datesSectionOfActivity.length() > TEMPLATE_DATES_COUNT ? NOT_FOUND_STR
+					: datesSectionOfActivity;
+
 			// Retrieve ubication maps
 			String locationSection = activityStrContent
 					.substring(activityStrContent.indexOf(INIT_LINK_MAP) + INIT_LINK_MAP.length());
@@ -211,13 +243,8 @@ public class ActividadDTO implements Serializable{
 			String locationOfActivity = locationSection.toString();
 
 			// Build Activity BO
-			final ActividadDTO localActDTO = new ActividadDTO();
-			localActDTO.setCuando(datesSectionOfActivity);
-			localActDTO.setNombre(titleOfActivity);
-			localActDTO.setDescripcion(titleOfActivity);
-			localActDTO.setPrecio(priceOfActivity);
-			localActDTO.setUrlMoreData(urlOfActivity);
-			localActDTO.setUbicacion(locationOfActivity);
+			final ActividadDTO localActDTO = createStaticActivity(datesSectionOfActivity, titleOfActivity,
+					priceOfActivity, urlOfActivity, locationOfActivity);
 
 			listToReturn.add(localActDTO);
 
@@ -226,6 +253,50 @@ public class ActividadDTO implements Serializable{
 			finiIndexOfActivity = auxLine.indexOf(END_OF_ONE_ACTIVITY);
 		}
 		return listToReturn;
+	}
+
+	/**
+	 * Method to create a new instance of ActivityDTO
+	 * 
+	 * @param datesSectionOfActivity
+	 * @param titleOfActivity
+	 * @param priceOfActivity
+	 * @param urlOfActivity
+	 * @param locationOfActivity
+	 * @return
+	 * @throws ParseException
+	 */
+	private static ActividadDTO createStaticActivity(String pDatesSectionOfActivity, String pTitleOfActivity,
+			String pPriceOfActivity, String pUrlOfActivity, String pLocationOfActivity) throws ParseException {
+		final ActividadDTO returnActivityDTO = new ActividadDTO();
+
+		if (Objects.nonNull(pDatesSectionOfActivity) && !pDatesSectionOfActivity.isEmpty()
+				&& !NOT_FOUND_STR.equals(pDatesSectionOfActivity)) {
+			final String[] fromTo = pDatesSectionOfActivity.split(UNDERSCORE_VALUE_STRING);
+			if (fromTo.length == 2) {// From && To Date - 2021-03-04T19:00:00+01:00_2021-05-29T18:00:00+02:00
+				final SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+				returnActivityDTO.setTimeStampFrom(inputFormat.parse(fromTo[0]).getTime());
+				returnActivityDTO.setTimeStampTo(inputFormat.parse(fromTo[1]).getTime());
+			}
+		}
+		if (Objects.nonNull(pPriceOfActivity) && !pPriceOfActivity.isEmpty()
+				&& !NOT_FOUND_STR.equals(pPriceOfActivity)) {
+			final String strToParse = pPriceOfActivity.contains("Free") || pPriceOfActivity.contains("Gratis") ? "0.0"
+					: pPriceOfActivity.replaceAll(",", ".").replace(' ', 'w').replaceAll("[A-Za-z€]",
+							EMPTY_VALUE_STRING);
+			returnActivityDTO.setPrecio(
+					Objects.nonNull(strToParse) ? !strToParse.isEmpty() ? Double.parseDouble(strToParse) : 0.0d : 0.0d);
+		}
+
+		final String[] latLon = pLocationOfActivity.split(",");
+		if (latLon.length == 2) {// latitud & longitud
+			returnActivityDTO.setUbicacionLat(Double.parseDouble(latLon[0]));
+			returnActivityDTO.setUbicacionLon(Double.parseDouble(latLon[1]));
+		}
+
+		returnActivityDTO.setUrl(pUrlOfActivity);
+		returnActivityDTO.setNombre(pTitleOfActivity);
+		return returnActivityDTO;
 	}
 
 	/**
@@ -251,19 +322,47 @@ public class ActividadDTO implements Serializable{
 	}
 
 	@JsonFormat
-	private String nombre;
-	@JsonFormat
-	private String descripcion;
-	@JsonFormat
-	private String cuando;
-	@JsonFormat
-	private String precio;
-	@JsonFormat
-	private String urlMoreData;
-	@JsonFormat
-	private String ubicacion;
+	private long id;
 
-	
+	@JsonFormat
+	private String nombre;
+
+	@JsonFormat
+	private Double precio;
+
+	@JsonFormat
+	private String url;
+
+	@JsonFormat
+	private Long timeStampFrom;
+
+	@JsonFormat
+	private Long timeStampTo;
+
+	@JsonFormat
+	private Double ubicacionLat;
+
+	@JsonFormat
+	private Double ubicacionLon;
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null)
+			return false;
+		if (this == obj)
+			return true;
+		if (this.getClass() != obj.getClass())
+			return false;
+		return this.url != null && ((ActividadDTO) obj).url != null && ((ActividadDTO) obj).url.equals(this.url);
+	}
+
+	/**
+	 * @return the id
+	 */
+	public long getId() {
+		return id;
+	}
+
 	/**
 	 * @return the nombre
 	 */
@@ -272,24 +371,52 @@ public class ActividadDTO implements Serializable{
 	}
 
 	/**
-	 * @return the descripcion
-	 */
-	public String getDescripcion() {
-		return descripcion;
-	}
-
-	/**
-	 * @return the cuando
-	 */
-	public String getCuando() {
-		return cuando;
-	}
-
-	/**
 	 * @return the precio
 	 */
-	public String getPrecio() {
+	public double getPrecio() {
 		return precio;
+	}
+
+	/**
+	 * @return the url
+	 */
+	public String getUrl() {
+		return url;
+	}
+
+	/**
+	 * @return the timeStampFrom
+	 */
+	public long getTimeStampFrom() {
+		return timeStampFrom;
+	}
+
+	/**
+	 * @return the timeStampTo
+	 */
+	public long getTimeStampTo() {
+		return timeStampTo;
+	}
+
+	/**
+	 * @return the ubicacionlat
+	 */
+	public double getUbicacionLat() {
+		return ubicacionLat;
+	}
+
+	/**
+	 * @return the ubicacionLon
+	 */
+	public double getUbicacionLon() {
+		return ubicacionLon;
+	}
+
+	/**
+	 * @param id the id to set
+	 */
+	public void setId(long id) {
+		this.id = id;
 	}
 
 	/**
@@ -300,56 +427,51 @@ public class ActividadDTO implements Serializable{
 	}
 
 	/**
-	 * @param descripcion the descripcion to set
-	 */
-	public void setDescripcion(String descripcion) {
-		this.descripcion = descripcion;
-	}
-
-	/**
-	 * @param cuando the cuando to set
-	 */
-	public void setCuando(String cuando) {
-		this.cuando = cuando;
-	}
-
-	/**
 	 * @param precio the precio to set
 	 */
-	public void setPrecio(String precio) {
+	public void setPrecio(double precio) {
 		this.precio = precio;
 	}
 
 	/**
-	 * @return the urlMoreData
+	 * @param url the url to set
 	 */
-	public String getUrlMoreData() {
-		return urlMoreData;
+	public void setUrl(String url) {
+		this.url = url;
 	}
 
 	/**
-	 * @param urlMoreData the urlMoreData to set
+	 * @param timeStampFrom the timeStampFrom to set
 	 */
-	public void setUrlMoreData(String urlMoreData) {
-		this.urlMoreData = urlMoreData;
+	public void setTimeStampFrom(long timeStampFrom) {
+		this.timeStampFrom = timeStampFrom;
 	}
 
 	/**
-	 * @return the ubicacion
+	 * @param timeStampTo the timeStampTo to set
 	 */
-	public String getUbicacion() {
-		return ubicacion;
+	public void setTimeStampTo(long timeStampTo) {
+		this.timeStampTo = timeStampTo;
 	}
 
 	/**
-	 * @param ubicacion the ubicacion to set
+	 * @param ubicacionlat the ubicacionlat to set
 	 */
-	public void setUbicacion(String ubicacion) {
-		this.ubicacion = ubicacion;
+	public void setUbicacionLat(double ubicacionlat) {
+		this.ubicacionLat = ubicacionlat;
+	}
+
+	/**
+	 * @param ubicacionLon the ubicacionLon to set
+	 */
+	public void setUbicacionLon(double ubicacionLon) {
+		this.ubicacionLon = ubicacionLon;
 	}
 
 	@Override
 	public String toString() {
-		return this.nombre + " | " + this.cuando + " | " + this.precio + " | " + this.ubicacion;
+		return this.nombre + " | FROM: " + this.timeStampFrom + " | TO: " + this.timeStampFrom + " | " + this.precio
+				+ " | l:" + this.ubicacionLat + " | L:" + this.ubicacionLon + " | " + this.url;
 	}
+
 }
