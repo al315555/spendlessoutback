@@ -15,6 +15,7 @@ class CrawlerFunctionalityTests {
 	@Test
 	void testEncodingStringIntoQuotedPrintableStringToUseInURLFromAllTheTownsFromSpain() {
 		try {
+			final ArrayList<Boolean> listBoolean = new ArrayList<>();
 			final String allTownsFromSpain = ActividadDTO.retrieveURLWebContent("https://raw.githubusercontent.com/IagoLast/pselect/master/data/municipios.json");
 
 			Pattern patternURLRegex = Pattern.compile("\"nm\":\"(\\\\\\\\.|[^\"])*\"");
@@ -26,8 +27,11 @@ class CrawlerFunctionalityTests {
 				System.out.println(instanceOfURL +" -> " +pTownParam);
 				ArrayList<ActividadDTO> websiteEmbebbed = ActividadDTO.gatherActivities(pTownParam);
 				System.out.println(websiteEmbebbed);
-				assertFalse(websiteEmbebbed.isEmpty());
+				listBoolean.add(websiteEmbebbed.isEmpty());
 			}
+//			listBoolean.stream().filter(Boolean::assertFalse);
+			for(Boolean e : listBoolean)
+				assertFalse(e);
 			
 		} catch (Exception e) {
 			assertFalse(e.getCause().getMessage().isEmpty());
