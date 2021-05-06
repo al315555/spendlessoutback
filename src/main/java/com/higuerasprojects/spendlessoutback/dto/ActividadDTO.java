@@ -281,9 +281,10 @@ public class ActividadDTO implements Serializable {
 		}
 		if (Objects.nonNull(pPriceOfActivity) && !pPriceOfActivity.isEmpty()
 				&& !NOT_FOUND_STR.equals(pPriceOfActivity)) {
-			final String strToParse = pPriceOfActivity.contains("Free") || pPriceOfActivity.contains("Gratis") ? "0.0"
-					: pPriceOfActivity.replaceAll(",", ".").replace(' ', 'w').replaceAll("[A-Za-z€]",
-							EMPTY_VALUE_STRING);
+			String strToParse = pPriceOfActivity.contains("Free") || pPriceOfActivity.contains("Gratis") ? "0.0"
+					: pPriceOfActivity.replaceAll(",", ".").replace(' ', 'w').replaceAll("[A-Za-z€\\-]",
+							".");
+			strToParse = strToParse.substring(0, strToParse.lastIndexOf("."));
 			returnActivityDTO.setPrecio(
 					Objects.nonNull(strToParse) ? !strToParse.isEmpty() ? Double.parseDouble(strToParse) : 0.0d : 0.0d);
 		}

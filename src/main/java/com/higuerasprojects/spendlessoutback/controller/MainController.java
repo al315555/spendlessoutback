@@ -73,6 +73,14 @@ public class MainController {
 		return new ResponseEntity<ItinerarioDTO>(null, responseHeaders, HttpStatus.UNAUTHORIZED);
 	}
 	
+	@GetMapping("/towns")
+	public ResponseEntity<String> allTownsGetRestAPI(@RequestParam String cityname){
+		final HttpHeaders responseHeaders = new HttpHeaders();
+		responseHeaders.set("Content-Type", "application/json");
+		final String allTownsFromSpain = itinerarioService.filterTownsAsJSON(cityname);
+		return new ResponseEntity<String>(allTownsFromSpain, responseHeaders, !allTownsFromSpain.isEmpty() ? HttpStatus.OK :  HttpStatus.NO_CONTENT) ;
+	}
+
 	
 	@GetMapping("/user/registered")
 	public ResponseEntity<Boolean> checkUserEmailGetRestAPI(@RequestParam String email){

@@ -3,8 +3,10 @@
  */
 package com.higuerasprojects.spendlessoutback.service;
 
+import java.io.FileNotFoundException;
 import java.util.Objects;
-import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
@@ -15,12 +17,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import com.higuerasprojects.spendlessoutback.dto.ActividadDTO;
 import com.higuerasprojects.spendlessoutback.dto.ItinerarioDTO;
-import com.higuerasprojects.spendlessoutback.dto.UsuarioDTO;
-import com.higuerasprojects.spendlessoutback.dto.jwt.JWTRequestDTO;
 import com.higuerasprojects.spendlessoutback.dto.jwt.JWTResponseDTO;
 import com.higuerasprojects.spendlessoutback.model.DatoItinerario;
-import com.higuerasprojects.spendlessoutback.model.DatoUsuario;
 
 /**
  * @author Ruhimo
@@ -71,6 +71,29 @@ public class ItinerarioService {
 		return modelMapper.map(pDto, DatoItinerario.class);
 	}
 
+	public String filterTownsAsJSON(final String initials) {
+		final StringBuilder strBuilder = new StringBuilder("[");
+		try {
+			final String allTownsFromSpain = ActividadDTO.retrieveURLWebContent("https://raw.githubusercontent.com/IagoLast/pselect/master/data/municipios.json");
+			Pattern patternURLRegex = Pattern.compile("\"nm\":\"(\\\\\\\\.|[^\"])*\"");
+			Matcher matcheURL = patternURLRegex.matcher(allTownsFromSpain);
+			while (matcheURL.find()) {
+				String instanceOfURL = matcheURL.group();
+				instanceOfURL = instanceOfURL.substring(instanceOfURL.indexOf(":")+2, instanceOfURL.lastIndexOf("\""));
+				if (instanceOfURL.toLowerCase().contains(initials.toLowerCase())) {
+					strBuilder.append("{name:").append(instanceOfURL).append("},");
+				}
+			}
+			strBuilder.deleteCharAt(strBuilder.lastIndexOf(",")).append("]");
+		} catch (FileNotFoundException e) {
+			LOGGER.error("FileNotFoundException|"+e.getLocalizedMessage() + " - " + e.getMessage());
+			e.printStackTrace();
+		} catch (Exception e) {
+			LOGGER.error(e.getLocalizedMessage() + " - " + e.getMessage());
+			e.printStackTrace();
+		}
+		return strBuilder.toString();
+	}
 	
 	/**
 	 * 
