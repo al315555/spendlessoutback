@@ -9,6 +9,7 @@ import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.codec.EncoderException;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,7 +74,6 @@ public class ItinerarioService {
 	}
 
 	public String filterTownsAsJSON(final String initials) {
-		boolean tryAgain = true;// time to launch a new req to the geocode url website
 
 		final StringBuilder strBuilder = new StringBuilder("{\"data\":[");
 		try {
@@ -85,33 +85,40 @@ public class ItinerarioService {
 				String instanceOfURL = matcheURL.group();
 				instanceOfURL = instanceOfURL.substring(instanceOfURL.indexOf(":") + 2,
 						instanceOfURL.lastIndexOf("\""));
-				if (instanceOfURL.toLowerCase().contains(initials.toLowerCase())) {
-					while (tryAgain) {
-						try {
-							final String dataFromTown = ActividadDTO.retrieveURLWebContent(
-									"https://geocode.xyz/" + ActividadDTO.encodeStringInQuotedPrintable(instanceOfURL)
-											.replaceAll("=", "%").toLowerCase() + "?geoit=csv");
-							final String[] ubicationFromTown = dataFromTown.split(",");
-							if (ubicationFromTown.length == 4) {// lat [3] & long [4]
-								strBuilder.append("{\"name\":\"").append(instanceOfURL);
-								strBuilder.append("\",\"lat\":\"").append(ubicationFromTown[2]).append("\",\"lon\":\"")
-										.append(ubicationFromTown[3]);
-								strBuilder.append("\"},");
-							}
-							tryAgain = false;
-						} catch (java.io.IOException quickCallException) {
-							LOGGER.warn("So Fast URL request|" + quickCallException.getLocalizedMessage() + " - " + quickCallException.getMessage());
-							tryAgain = true;
-						}
-					}
+				if (instanceOfURL.toLowerCase().startsWith(initials.toLowerCase())) {
+					strBuilder.append("{\"name\":\"").append(instanceOfURL).append("\"},");
 				}
-				tryAgain = true;
 			}
 			final int indexToDelete = strBuilder.lastIndexOf(",");
 			if (indexToDelete > 0) {
 				strBuilder.deleteCharAt(indexToDelete);
 			}
 			strBuilder.append("]}");
+		} catch (
+
+		FileNotFoundException e) {
+			LOGGER.error("FileNotFoundException|" + e.getLocalizedMessage() + " - " + e.getMessage());
+			e.printStackTrace();
+		} catch (Exception e) {
+			LOGGER.error(e.getLocalizedMessage() + " - " + e.getMessage());
+			e.printStackTrace();
+		}
+		return strBuilder.toString();
+	}
+
+	public String retrieveLatLonFromLocationNameJSON(final String locationName) {
+		final StringBuilder strBuilder = new StringBuilder();
+		try {
+			final String dataFromTown = ActividadDTO.retrieveURLWebContent("https://geocode.xyz/"
+					+ ActividadDTO.encodeStringInQuotedPrintable(locationName).replaceAll("=", "%").toLowerCase()
+					+ "?geoit=csv");
+			final String[] ubicationFromTown = dataFromTown.split(",");
+			if (ubicationFromTown.length == 4) {// lat [3] & long [4]
+				strBuilder.append("{\"name\":\"").append(locationName);
+				strBuilder.append("\",\"lat\":\"").append(ubicationFromTown[2]).append("\",\"lon\":\"")
+						.append(ubicationFromTown[3]);
+				strBuilder.append("\"},");
+			}
 		} catch (FileNotFoundException e) {
 			LOGGER.error("FileNotFoundException|" + e.getLocalizedMessage() + " - " + e.getMessage());
 			e.printStackTrace();

@@ -81,6 +81,14 @@ public class MainController {
 		return new ResponseEntity<String>(allTownsFromSpain, responseHeaders, !allTownsFromSpain.isEmpty() ? HttpStatus.OK :  HttpStatus.NO_CONTENT) ;
 	}
 
+	@GetMapping("/towns/findfullData")
+	public ResponseEntity<String> findfullDataTownGetRestAPI(@RequestParam String fullCityName){
+		final HttpHeaders responseHeaders = new HttpHeaders();
+		responseHeaders.set("Content-Type", "application/json");
+		final String allDateTown = itinerarioService.retrieveLatLonFromLocationNameJSON(fullCityName);
+		return new ResponseEntity<String>(allDateTown, responseHeaders, !allDateTown.isEmpty() ? HttpStatus.OK :  HttpStatus.NO_CONTENT) ;
+	}
+
 	
 	@GetMapping("/user/registered")
 	public ResponseEntity<Boolean> checkUserEmailGetRestAPI(@RequestParam String email){
