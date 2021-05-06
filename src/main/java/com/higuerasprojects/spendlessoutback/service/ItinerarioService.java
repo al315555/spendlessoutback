@@ -81,7 +81,7 @@ public class ItinerarioService {
 				String instanceOfURL = matcheURL.group();
 				instanceOfURL = instanceOfURL.substring(instanceOfURL.indexOf(":")+2, instanceOfURL.lastIndexOf("\""));
 				if (instanceOfURL.toLowerCase().contains(initials.toLowerCase())) {
-					strBuilder.append("{name:").append(instanceOfURL).append("},");
+					strBuilder.append("{\"name\":\"").append(instanceOfURL).append("\"},");
 				}
 			}
 			strBuilder.deleteCharAt(strBuilder.lastIndexOf(",")).append("]");
