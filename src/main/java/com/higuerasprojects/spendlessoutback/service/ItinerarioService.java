@@ -73,7 +73,8 @@ public class ItinerarioService {
 	}
 
 	public String filterTownsAsJSON(final String initials) {
-		long timeOldReq=0, timeNewReq=0;//time to launch a new req to the geocode url website
+		boolean tryAgain = true;// time to launch a new req to the geocode url website
+
 		final StringBuilder strBuilder = new StringBuilder("{\"data\":[");
 		try {
 			final String allTownsFromSpain = ActividadDTO.retrieveURLWebContent(
@@ -85,21 +86,23 @@ public class ItinerarioService {
 				instanceOfURL = instanceOfURL.substring(instanceOfURL.indexOf(":") + 2,
 						instanceOfURL.lastIndexOf("\""));
 				if (instanceOfURL.toLowerCase().contains(initials.toLowerCase())) {
-					if(timeOldReq != 0) {
-						timeNewReq = Calendar.getInstance().getTimeInMillis();
-						final long differOfTimes = timeNewReq - timeOldReq;
-						Thread.sleep(differOfTimes < 1000 ? 1000-differOfTimes : 0);
-					}
-					timeOldReq = Calendar.getInstance().getTimeInMillis();
-					final String dataFromTown = ActividadDTO.retrieveURLWebContent(
-							"https://geocode.xyz/" + ActividadDTO.encodeStringInQuotedPrintable(instanceOfURL)
-									.replaceAll("=", "%").toLowerCase() + "?geoit=csv");
-					final String[] ubicationFromTown = dataFromTown.split(",");
-					if (ubicationFromTown.length == 4) {// lat [3] & long [4]
-						strBuilder.append("{\"name\":\"").append(instanceOfURL);
-						strBuilder.append("\",\"lat\":\"").append(ubicationFromTown[2]).append("\",\"lon\":\"")
-								.append(ubicationFromTown[3]);
-						strBuilder.append("\"},");
+					while (tryAgain) {
+						try {
+							final String dataFromTown = ActividadDTO.retrieveURLWebContent(
+									"https://geocode.xyz/" + ActividadDTO.encodeStringInQuotedPrintable(instanceOfURL)
+											.replaceAll("=", "%").toLowerCase() + "?geoit=csv");
+							final String[] ubicationFromTown = dataFromTown.split(",");
+							if (ubicationFromTown.length == 4) {// lat [3] & long [4]
+								strBuilder.append("{\"name\":\"").append(instanceOfURL);
+								strBuilder.append("\",\"lat\":\"").append(ubicationFromTown[2]).append("\",\"lon\":\"")
+										.append(ubicationFromTown[3]);
+								strBuilder.append("\"},");
+							}
+							tryAgain = false;
+						} catch (java.io.IOException quickCallException) {
+							LOGGER.warn("So Fast URL request|" + quickCallException.getLocalizedMessage() + " - " + quickCallException.getMessage());
+							tryAgain = true;
+						}
 					}
 				}
 			}
