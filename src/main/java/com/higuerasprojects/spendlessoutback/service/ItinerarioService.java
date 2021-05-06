@@ -83,11 +83,11 @@ public class ItinerarioService {
 				if (instanceOfURL.toLowerCase().contains(initials.toLowerCase())) {
 					final String dataFromTown = ActividadDTO.retrieveURLWebContent("https://geocode.xyz/"+ActividadDTO.encodeStringInQuotedPrintable(instanceOfURL).replaceAll("=", "%").toLowerCase()+"?geoit=csv");
 					final String[] ubicationFromTown = dataFromTown.split(",");
-					strBuilder.append("{\"name\":\"").append(instanceOfURL);
 					if(ubicationFromTown.length==4) {//lat [3] & long [4]
+						strBuilder.append("{\"name\":\"").append(instanceOfURL);
 						strBuilder.append("\",\"lat\":\"").append(ubicationFromTown[2]).append("\",\"lon\":\"").append(ubicationFromTown[3]);
+						strBuilder.append("\"},");
 					}
-					strBuilder.append("\"},");
 				}
 			}
 			strBuilder.deleteCharAt(strBuilder.lastIndexOf(",")).append("]}");
