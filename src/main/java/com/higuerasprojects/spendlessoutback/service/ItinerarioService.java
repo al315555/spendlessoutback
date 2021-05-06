@@ -117,7 +117,7 @@ public class ItinerarioService {
 				strBuilder.append("{\"name\":\"").append(locationName);
 				strBuilder.append("\",\"lat\":\"").append(ubicationFromTown[2]).append("\",\"lon\":\"")
 						.append(ubicationFromTown[3]);
-				strBuilder.append("\"},");
+				strBuilder.append("\"}");
 			}
 		} catch (FileNotFoundException e) {
 			LOGGER.error("FileNotFoundException|" + e.getLocalizedMessage() + " - " + e.getMessage());
