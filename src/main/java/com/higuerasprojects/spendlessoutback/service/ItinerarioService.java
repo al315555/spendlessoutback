@@ -72,7 +72,7 @@ public class ItinerarioService {
 	}
 
 	public String filterTownsAsJSON(final String initials) {
-		final StringBuilder strBuilder = new StringBuilder("[");
+		final StringBuilder strBuilder = new StringBuilder("{\"data\":[") ;
 		try {
 			final String allTownsFromSpain = ActividadDTO.retrieveURLWebContent("https://raw.githubusercontent.com/IagoLast/pselect/master/data/municipios.json");
 			Pattern patternURLRegex = Pattern.compile("\"nm\":\"(\\\\\\\\.|[^\"])*\"");
@@ -84,7 +84,7 @@ public class ItinerarioService {
 					strBuilder.append("{\"name\":\"").append(instanceOfURL).append("\"},");
 				}
 			}
-			strBuilder.deleteCharAt(strBuilder.lastIndexOf(",")).append("]");
+			strBuilder.deleteCharAt(strBuilder.lastIndexOf(",")).append("]}");
 		} catch (FileNotFoundException e) {
 			LOGGER.error("FileNotFoundException|"+e.getLocalizedMessage() + " - " + e.getMessage());
 			e.printStackTrace();
