@@ -105,6 +105,7 @@ public class ItinerarioService {
 						}
 					}
 				}
+				tryAgain = true;
 			}
 			final int indexToDelete = strBuilder.lastIndexOf(",");
 			if (indexToDelete > 0) {
