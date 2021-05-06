@@ -282,7 +282,7 @@ public class ActividadDTO implements Serializable {
 		if (Objects.nonNull(pPriceOfActivity) && !pPriceOfActivity.isEmpty()
 				&& !NOT_FOUND_STR.equals(pPriceOfActivity)) {
 			String strToParse = pPriceOfActivity.contains("Free") || pPriceOfActivity.contains("Gratis") ? "0.0"
-					: pPriceOfActivity.replaceAll(",", ".").replace(' ', 'w').replaceAll("[A-Za-z€\\-]",
+					: pPriceOfActivity.replaceAll(",", ".").replace(' ', 'w').replaceAll("[A-Za-z€$\\-]",
 							".");
 			strToParse = strToParse.substring(0, strToParse.lastIndexOf("."));
 			returnActivityDTO.setPrecio(
