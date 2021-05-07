@@ -50,7 +50,7 @@ public class MainController {
 	public ResponseEntity<ArrayList<ActividadDTO>> activitiesGetRestAPI(){
 		ArrayList<ActividadDTO> websiteEmbebbed;
 		try {
-			websiteEmbebbed = ActividadDTO.gatherActivities(ActividadDTO.URL_LOCATION_VALENCIA);
+			websiteEmbebbed = ItinerarioService.gatherActivities(ItinerarioService.URL_LOCATION_VALENCIA);
 		} catch (Exception e) {
 			return new ResponseEntity<ArrayList<ActividadDTO>>(new ArrayList<>(), new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -77,7 +77,7 @@ public class MainController {
 	public ResponseEntity<String> allTownsGetRestAPI(@RequestParam String cityname){
 		final HttpHeaders responseHeaders = new HttpHeaders();
 		responseHeaders.set("Content-Type", "application/json");
-		final String allTownsFromSpain = itinerarioService.filterTownsAsJSON(cityname);
+		final String allTownsFromSpain = ItinerarioService.filterTownsAsJSON(cityname);
 		return new ResponseEntity<String>(allTownsFromSpain, responseHeaders, !allTownsFromSpain.isEmpty() ? HttpStatus.OK :  HttpStatus.NO_CONTENT) ;
 	}
 
@@ -85,7 +85,7 @@ public class MainController {
 	public ResponseEntity<String> findfullDataTownGetRestAPI(@RequestParam String fullCityName){
 		final HttpHeaders responseHeaders = new HttpHeaders();
 		responseHeaders.set("Content-Type", "application/json");
-		final String allDateTown = itinerarioService.retrieveLatLonFromLocationNameJSON(fullCityName);
+		final String allDateTown = ItinerarioService.retrieveLatLonFromLocationNameJSON(fullCityName);
 		return new ResponseEntity<String>(allDateTown, responseHeaders, !allDateTown.isEmpty() ? HttpStatus.OK :  HttpStatus.NO_CONTENT) ;
 	}
 

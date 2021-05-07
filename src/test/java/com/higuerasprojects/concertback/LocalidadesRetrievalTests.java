@@ -6,6 +6,8 @@ package com.higuerasprojects.concertback;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.higuerasprojects.spendlessoutback.service.ItinerarioService;
 
@@ -13,13 +15,15 @@ import com.higuerasprojects.spendlessoutback.service.ItinerarioService;
  * @author Ruhimo
  *
  */
-public class LocalidadesRetrievalTests {
+class LocalidadesRetrievalTests {
+	
+	private static final Logger LOGGER = LoggerFactory.getLogger(LocalidadesRetrievalTests.class);
 	
 	@Test
 	void testFilteringFromAllTheTownsFromSpain() {
 		try {
 			String filtered = ItinerarioService.filterTownsAsJSON("Jer");
-			System.out.println(filtered);
+			LOGGER.info("|testFilteringFromAllTheTownsFromSpain|-"+filtered);
 			assertFalse(filtered.isEmpty());
 		} catch (Exception e) {
 			assertFalse(e.getCause().getMessage().isEmpty());
@@ -27,10 +31,10 @@ public class LocalidadesRetrievalTests {
 		}
 	}
 	@Test
-	void retrieveLatLonFromLocationNameFromSpain() {
+	void testRetrieveLatLonFromLocationNameFromSpain() {
 		try {
 			String filtered = ItinerarioService.retrieveLatLonFromLocationNameJSON("Jerez de los Caballeros");
-			System.out.println(filtered);
+			LOGGER.info("|testRetrieveLatLonFromLocationNameFromSpain|-"+filtered);
 			assertFalse(filtered.isEmpty());
 		} catch (Exception e) {
 			assertFalse(e.getCause().getMessage().isEmpty());
