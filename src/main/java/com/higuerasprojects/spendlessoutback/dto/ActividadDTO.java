@@ -155,8 +155,8 @@ public class ActividadDTO implements Serializable {
 			url = new URL(pUrlToSearch);
 			is = url.openStream();
 			sc = new Scanner(is);
-			while (sc.hasNext()) {
-				line.append(sc.next());
+			while (sc.hasNextLine()) {
+				line.append(sc.nextLine());
 			}
 		} catch (EOFException endFileExecption) {
 			LOGGER.error("END_OF_FILE: " + line.toString());
@@ -181,7 +181,7 @@ public class ActividadDTO implements Serializable {
 				LOGGER.error(ioe.getLocalizedMessage() + " - " + ioe.getMessage());
 			}
 		}
-		return line.toString();
+		return line.toString().replaceAll("\n", EMPTY_VALUE_STRING).replaceAll("\t", EMPTY_VALUE_STRING);
 	}
 
 	private static final ArrayList<ActividadDTO> retrieveActivityListFromStrContent(final String line)

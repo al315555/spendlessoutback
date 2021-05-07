@@ -73,17 +73,17 @@ public class ItinerarioService {
 		return modelMapper.map(pDto, DatoItinerario.class);
 	}
 
-	public String filterTownsAsJSON(final String initials) {
+	public static final String filterTownsAsJSON(final String initials) {
 
 		final StringBuilder strBuilder = new StringBuilder("{\"data\":[");
 		try {
 			final String allTownsFromSpain = ActividadDTO.retrieveURLWebContent(
 					"https://raw.githubusercontent.com/IagoLast/pselect/master/data/municipios.json");
-			Pattern patternURLRegex = Pattern.compile("\"nm\":\"(\\\\\\\\.|[^\"])*\"");
+			Pattern patternURLRegex = Pattern.compile("\"nm\": \"(\\\\\\\\.|[^\"])*\"");
 			Matcher matcheURL = patternURLRegex.matcher(allTownsFromSpain);
 			while (matcheURL.find()) {
 				String instanceOfURL = matcheURL.group();
-				instanceOfURL = instanceOfURL.substring(instanceOfURL.indexOf(":") + 2,
+				instanceOfURL = instanceOfURL.substring(instanceOfURL.indexOf(":") + 3,
 						instanceOfURL.lastIndexOf("\""));
 				if (instanceOfURL.toLowerCase().startsWith(initials.toLowerCase())) {
 					strBuilder.append("{\"name\":\"").append(instanceOfURL).append("\"},");
@@ -106,7 +106,7 @@ public class ItinerarioService {
 		return strBuilder.toString();
 	}
 
-	public String retrieveLatLonFromLocationNameJSON(final String locationName) {
+	public static final String retrieveLatLonFromLocationNameJSON(final String locationName) {
 		final StringBuilder strBuilder = new StringBuilder();
 		try {
 			final String dataFromTown = ActividadDTO.retrieveURLWebContent("https://geocode.xyz/"
