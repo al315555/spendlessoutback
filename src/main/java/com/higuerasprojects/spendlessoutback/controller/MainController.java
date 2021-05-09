@@ -60,6 +60,17 @@ public class MainController {
 		return new ResponseEntity<List<ItinerarioDTO>>(websiteEmbebbed, new HttpHeaders(), HttpStatus.OK);
 	}
 	
+	@GetMapping("/user/itinerario/listadobytown")
+	public ResponseEntity<List<ItinerarioDTO>> listadoItinerarioGetRestAPI(@RequestParam long userId, @RequestParam String townName, @RequestParam long townLat, @RequestParam long townLon){
+		List<ItinerarioDTO> websiteEmbebbed;
+		try {
+			websiteEmbebbed = itinerarioService.retrieveItinerariosFromUser(userId, townName,townLat, townLon);
+		} catch (Exception e) {
+			return new ResponseEntity<List<ItinerarioDTO>>(new ArrayList<>(), new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		return new ResponseEntity<List<ItinerarioDTO>>(websiteEmbebbed, new HttpHeaders(), HttpStatus.OK);
+	}
+	
 	@GetMapping("/itinerario/listado")
 	public ResponseEntity<List<ItinerarioDTO>> listadoItinerarioGetRestAPI(@RequestParam String townName, @RequestParam long townLat, @RequestParam long townLon){
 		List<ItinerarioDTO> websiteEmbebbed;

@@ -13,6 +13,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -32,6 +33,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import com.google.common.collect.Collections2;
+import com.google.common.collect.Lists;
 import com.higuerasprojects.spendlessoutback.dto.ActividadDTO;
 import com.higuerasprojects.spendlessoutback.dto.ItinerarioDTO;
 import com.higuerasprojects.spendlessoutback.dto.jwt.JWTResponseDTO;
@@ -189,6 +192,8 @@ public class ItinerarioService {
 						repoItinerario.save(convertToEntity(pItinerarioDTO)));
 				LOGGER.info("- Transactional method begin - ACTIVITIES FOUND -  " + activities.size());
 				int ordenAcumulative = 1;
+				final HashMap<String, Double> numberOfObjsInTheList = new HashMap<>();
+				double precioAcumulative = 0.0d;
 				for (final ActividadDTO act : activities) {
 					final double lat1 = pItinerarioDTO.getUbicacionLat();
 					final double lng1 = pItinerarioDTO.getUbicacionLon();
@@ -197,7 +202,12 @@ public class ItinerarioService {
 					final double distancia = distanciaCoord(lat1, lng1, lat2, lng2);
 					LOGGER.info("- Transactional method - distanciaCoord from " + act.getNombre() + " is " + distancia
 							+ " - ");
-					if (distancia <= pItinerarioDTO.getRadio()) {
+					final String urlTemp = act.getUrl();
+					if (distancia <= pItinerarioDTO.getRadio() && !numberOfObjsInTheList.containsKey(urlTemp) 
+							&& precioAcumulative <= pItinerarioDTO.getPrecioTotal() 
+							&& (precioAcumulative +  act.getPrecio())<= pItinerarioDTO.getPrecioTotal() ) {
+						precioAcumulative += act.getPrecio();
+						numberOfObjsInTheList.put(urlTemp, distancia);
 						final ActividadDTO currentActividadDTO = convertToDTO(repoActividad.save(convertToEntity(act)));
 						RelacionActIti relacion = new RelacionActIti();
 						relacion.setDistancia(distancia);
@@ -231,6 +241,17 @@ public class ItinerarioService {
 			itinerarios.add(convertToDTO(iti));
 		});
 		return itinerarios;
+	}
+	
+	public List<ItinerarioDTO> retrieveItinerariosFromUser(
+			final long pUserId,final String pTownName, final long pUbicacionLat,
+			final long pUbicacionLon) {
+		final ArrayList<ItinerarioDTO> itinerarios = new ArrayList<>();
+		repoItinerario.findAllByUbicacion(pTownName, pUbicacionLat, pUbicacionLon).stream().forEach(iti -> {
+			itinerarios.add(convertToDTO(iti));
+		});
+		return Lists.newArrayList(Collections2.filter(
+				itinerarios, itinerario -> itinerario.getIdUser() == pUserId));
 	}
 
 	/**********************************************************
