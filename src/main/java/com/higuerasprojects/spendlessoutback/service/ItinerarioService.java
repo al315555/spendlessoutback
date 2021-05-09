@@ -554,8 +554,9 @@ public class ItinerarioService {
 		if (Objects.nonNull(pPriceOfActivity) && !pPriceOfActivity.isEmpty()
 				&& !NOT_FOUND_STR.equals(pPriceOfActivity)) {
 			String strToParse = pPriceOfActivity.contains("Free") || pPriceOfActivity.contains("Gratis") ? "0.0"
-					: pPriceOfActivity.replaceAll(",", ".").replace(' ', 'w').replaceAll("[A-Za-z€$\\-]", "");
-//			strToParse = strToParse.substring(0, strToParse.lastIndexOf("."));
+					: pPriceOfActivity.replaceAll(",", ".").replace(' ', 'w').replaceAll("[A-Za-z€$\\-]", ".");
+			int dotLastIndex = strToParse.lastIndexOf(".");
+			strToParse = strToParse.substring(0, dotLastIndex != -1 ? dotLastIndex : strToParse.length());
 			returnActivityDTO.setPrecio(
 					Objects.nonNull(strToParse) ? !strToParse.isEmpty() ? Double.parseDouble(strToParse) : 0.0d : 0.0d);
 		}
