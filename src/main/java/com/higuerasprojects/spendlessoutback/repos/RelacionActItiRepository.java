@@ -16,7 +16,7 @@ import com.higuerasprojects.spendlessoutback.model.RelacionActIti;
  */
 public interface RelacionActItiRepository extends JpaRepository<RelacionActIti, Long> {
 	
-	@Query("SELECT * FROM RelacionActIti u WHERE u.idItinerario=:pIditinerario")
+	@Query("SELECT u.id, u.idActividad, u.idItinerario, u.orden, u.distancia FROM RelacionActIti u WHERE u.idItinerario=:pIditinerario")
 	List<RelacionActIti> findAllByItinerario(final long pIditinerario);
 	
 }
