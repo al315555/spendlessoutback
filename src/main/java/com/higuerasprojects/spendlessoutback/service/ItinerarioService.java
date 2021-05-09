@@ -558,7 +558,8 @@ public class ItinerarioService {
 		if (Objects.nonNull(pPriceOfActivity) && !pPriceOfActivity.isEmpty()
 				&& !NOT_FOUND_STR.equals(pPriceOfActivity)) {
 			String strToParse = pPriceOfActivity.contains("Free") || pPriceOfActivity.contains("Gratis") ? "0.0"
-					: pPriceOfActivity.replaceAll(",", ".").replace(' ', 'w').replaceAll("[A-Za-z€$\\-]", "#").replaceAll("#", "");
+					: pPriceOfActivity.replaceAll(",", ".").replace(' ', 'w').replaceAll("[A-Za-z€$\\-]", "#")
+							.replaceAll("#", "");
 			try {
 				returnActivityDTO.setPrecio(
 						Objects.nonNull(strToParse) ? !strToParse.isEmpty() ? Double.parseDouble(strToParse) : 0.0d
@@ -590,14 +591,18 @@ public class ItinerarioService {
 	 */
 	private static final int retrieveMaxPageValueOfTheSite(final String line) {
 		Pattern patternRegex = Pattern.compile(SECOND_PAGE_INSTANCE);
-		StringBuilder footerCtx = new StringBuilder(
-				line.substring(line.indexOf(INIT_BLOCK_PAGINATION), line.indexOf(END_BLOCK_PAGINATION)));
-		Matcher m = patternRegex.matcher(footerCtx);
-		int maxPageNumber = 1;
-		while (m.find()) {
-			final String instanceOfPage = m.group();
-			int localMax = Integer.parseInt(instanceOfPage.replaceAll(FIRST_PAGE_INSTANCE, EMPTY_VALUE_STRING));
-			maxPageNumber = maxPageNumber < localMax ? localMax : maxPageNumber;
+		final int indexFromBlockPagi = line.indexOf(INIT_BLOCK_PAGINATION);
+		final int indexFromEndBlockPagi = line.indexOf(END_BLOCK_PAGINATION);
+		int maxPageNumber = 0;
+		if (indexFromBlockPagi != -1 && indexFromEndBlockPagi != -1) {
+			StringBuilder footerCtx = new StringBuilder(line.substring(indexFromBlockPagi, indexFromEndBlockPagi));
+			Matcher m = patternRegex.matcher(footerCtx);
+			maxPageNumber = 1;
+			while (m.find()) {
+				final String instanceOfPage = m.group();
+				int localMax = Integer.parseInt(instanceOfPage.replaceAll(FIRST_PAGE_INSTANCE, EMPTY_VALUE_STRING));
+				maxPageNumber = maxPageNumber < localMax ? localMax : maxPageNumber;
+			}
 		}
 		return maxPageNumber;
 	}
