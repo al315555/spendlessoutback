@@ -6,7 +6,6 @@ package com.higuerasprojects.spendlessoutback.controller;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.modelmapper.internal.util.Callable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -20,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.context.request.async.DeferredResult;
 
 import com.higuerasprojects.spendlessoutback.dto.ActividadDTO;
 import com.higuerasprojects.spendlessoutback.dto.ItinerarioDTO;
@@ -61,33 +61,22 @@ public class MainController {
 	
 	
 	@PostMapping("/itinerario/generar")
-	public Callable<ResponseEntity<ItinerarioDTO>> generarItinerarioPostRestAPI(
+	public DeferredResult<ResponseEntity<ItinerarioDTO>> generarItinerarioPostRestAPI(
 			@RequestHeader("Authorization-Bearer") String pToken,
 			@RequestBody ItinerarioDTO pItinerario) {
 		final HttpHeaders responseHeaders = new HttpHeaders();
+		final DeferredResult <ResponseEntity<ItinerarioDTO>> deferredResult = new DeferredResult < > ();
 		if (pToken != null && !pToken.isEmpty()) {
-			return new Callable<ResponseEntity<ItinerarioDTO>>() {
-
-				@Override
-				public ResponseEntity<ItinerarioDTO> call() {
-					JWTResponseDTO jwtRes = new JWTResponseDTO(pToken,
-							userService.getExpirationDateFromTokenInMilliseconds(pToken));
-					ItinerarioDTO returnedItinerario = itinerarioService.generateItinerario(pItinerario, jwtRes);
-					responseHeaders.set("Authorization-Bearer", jwtRes.getNewToken());
-					responseHeaders.set("Authorization-Bearer-Expired", String.valueOf(jwtRes.getNewTimeIsValid()));
-					return new ResponseEntity<ItinerarioDTO>(returnedItinerario, responseHeaders, HttpStatus.OK);
-				}
-				
-			};
+			JWTResponseDTO jwtRes = new JWTResponseDTO(pToken,
+					userService.getExpirationDateFromTokenInMilliseconds(pToken));
+			ItinerarioDTO returnedItinerario = itinerarioService.generateItinerario(pItinerario, jwtRes);
+			responseHeaders.set("Authorization-Bearer", jwtRes.getNewToken());
+			responseHeaders.set("Authorization-Bearer-Expired", String.valueOf(jwtRes.getNewTimeIsValid()));
+			deferredResult.setResult(new ResponseEntity<ItinerarioDTO>(returnedItinerario, responseHeaders, HttpStatus.OK));
+		}else {
+			deferredResult.setResult(new ResponseEntity<ItinerarioDTO>(null, responseHeaders, HttpStatus.UNAUTHORIZED));
 		}
-		return new Callable<ResponseEntity<ItinerarioDTO>>() {
-
-			@Override
-			public ResponseEntity<ItinerarioDTO> call() {
-				return new ResponseEntity<ItinerarioDTO>(null, responseHeaders, HttpStatus.UNAUTHORIZED);
-			}
-			
-		};
+		return deferredResult;
 	}
 	
 	@GetMapping("/towns")
