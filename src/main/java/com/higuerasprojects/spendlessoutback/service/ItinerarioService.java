@@ -175,8 +175,8 @@ public class ItinerarioService {
 			} else if (itinerarioList != null && !itinerarioList.isEmpty()) {
 				for (DatoItinerario dit : itinerarioList) {
 					ItinerarioDTO ditDTO = convertToDTO(dit);
-					if (ditDTO.equals(pItinerarioDTO)) {
-						LOGGER.info("- Transactional method begin - FOUND ONE IN DB INSIDE LIST ");
+					if (ditDTO.equals(pItinerarioDTO)) { 
+						LOGGER.info("- Transactional method begin - FOUND ONE ITIN IN DB ");
 						resultItinerario = ditDTO;
 					}
 				}

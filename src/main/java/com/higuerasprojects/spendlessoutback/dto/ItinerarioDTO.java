@@ -52,7 +52,7 @@ public class ItinerarioDTO implements Serializable {
 	private boolean hasCar;
 	
 	@JsonFormat
-	private long idUser;
+	private long idUser; 
 
 	/**
 	 * @return the hasCar
