@@ -49,6 +49,28 @@ public class MainController {
 	@Autowired
 	private ItinerarioService itinerarioService;
 
+	@GetMapping("/itinerario/listado")
+	public ResponseEntity<List<ItinerarioDTO>> listadoItinerarioGetRestAPI(@RequestParam long userId){
+		List<ItinerarioDTO> websiteEmbebbed;
+		try {
+			websiteEmbebbed = itinerarioService.retrieveItinerariosFromUser(userId);
+		} catch (Exception e) {
+			return new ResponseEntity<List<ItinerarioDTO>>(new ArrayList<>(), new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		return new ResponseEntity<List<ItinerarioDTO>>(websiteEmbebbed, new HttpHeaders(), HttpStatus.OK);
+	}
+	
+	@GetMapping("/itinerario/listado")
+	public ResponseEntity<List<ItinerarioDTO>> listadoItinerarioGetRestAPI(@RequestParam String townName, @RequestParam long townLat, @RequestParam long townLon){
+		List<ItinerarioDTO> websiteEmbebbed;
+		try {
+			websiteEmbebbed = itinerarioService.retrieveItinerariosFromTownName(townName,townLat, townLon);
+		} catch (Exception e) {
+			return new ResponseEntity<List<ItinerarioDTO>>(new ArrayList<>(), new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		return new ResponseEntity<List<ItinerarioDTO>>(websiteEmbebbed, new HttpHeaders(), HttpStatus.OK);
+	}
+	
 	@GetMapping("/itinerario/actividades")
 	public ResponseEntity<List<ActividadDTO>> activitiesGetRestAPI(@RequestParam long itinerarioId){
 		List<ActividadDTO> websiteEmbebbed;

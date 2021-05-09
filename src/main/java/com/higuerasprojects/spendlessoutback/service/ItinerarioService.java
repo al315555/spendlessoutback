@@ -175,7 +175,7 @@ public class ItinerarioService {
 			} else if (itinerarioList != null && !itinerarioList.isEmpty()) {
 				for (DatoItinerario dit : itinerarioList) {
 					ItinerarioDTO ditDTO = convertToDTO(dit);
-					if (ditDTO.equals(pItinerarioDTO)) { 
+					if (ditDTO.equals(pItinerarioDTO)) {
 						LOGGER.info("- Transactional method begin - FOUND ONE ITIN IN DB ");
 						resultItinerario = ditDTO;
 					}
@@ -195,8 +195,9 @@ public class ItinerarioService {
 					final double lat2 = act.getUbicacionLat();
 					final double lng2 = act.getUbicacionLon();
 					final double distancia = distanciaCoord(lat1, lng1, lat2, lng2);
-					LOGGER.info("- Transactional method - distanciaCoord from " + act.getNombre() + " is "+distancia+" - ");
-//					if (distancia <= pItinerarioDTO.getRadio()) {
+					LOGGER.info("- Transactional method - distanciaCoord from " + act.getNombre() + " is " + distancia
+							+ " - ");
+					if (distancia <= pItinerarioDTO.getRadio()) {
 						final ActividadDTO currentActividadDTO = convertToDTO(repoActividad.save(convertToEntity(act)));
 						RelacionActIti relacion = new RelacionActIti();
 						relacion.setDistancia(distancia);
@@ -204,7 +205,7 @@ public class ItinerarioService {
 						relacion.setIdActividad(currentActividadDTO.getId());
 						relacion.setIdItinerario(currentItinerarioDTO.getId());
 						repoRelacion.save(relacion);
-//					}
+					}
 				}
 				resultItinerario = currentItinerarioDTO;
 				LOGGER.info("- Transactional method end - ITINERARIO DATA: " + resultItinerario.toString());
@@ -212,6 +213,24 @@ public class ItinerarioService {
 		}
 		LOGGER.info("- Transactional method end - ");
 		return resultItinerario;
+	}
+
+	public List<ItinerarioDTO> retrieveItinerariosFromTownName(final String pTownName, final long pUbicacionLat,
+			final long pUbicacionLon) {
+		final ArrayList<ItinerarioDTO> itinerarios = new ArrayList<>();
+		repoItinerario.findAllByUbicacion(pTownName, pUbicacionLat, pUbicacionLon).stream().forEach(iti -> {
+			itinerarios.add(convertToDTO(iti));
+		});
+		return itinerarios;
+	}
+	
+	public List<ItinerarioDTO> retrieveItinerariosFromUser(
+			final long pUserId) {
+		final ArrayList<ItinerarioDTO> itinerarios = new ArrayList<>();
+		repoItinerario.findAllByUserId(pUserId).stream().forEach(iti -> {
+			itinerarios.add(convertToDTO(iti));
+		});
+		return itinerarios;
 	}
 
 	/**********************************************************
@@ -559,7 +578,8 @@ public class ItinerarioService {
 		if (Objects.nonNull(pPriceOfActivity) && !pPriceOfActivity.isEmpty()
 				&& !NOT_FOUND_STR.equals(pPriceOfActivity)) {
 			String strToParse = pPriceOfActivity.contains("Free") || pPriceOfActivity.contains("Gratis") ? "0.0"
-					: pPriceOfActivity.replaceAll(",", ".").replace(' ', 'w').replaceAll("[A-Za-zÀ-ÖØ-öø-ÿ€$\\-]", "").trim();
+					: pPriceOfActivity.replaceAll(",", ".").replace(' ', 'w').replaceAll("[A-Za-zÀ-ÖØ-öø-ÿ€$\\-]", "")
+							.trim();
 			try {
 				returnActivityDTO.setPrecio(
 						Objects.nonNull(strToParse) ? !strToParse.isEmpty() ? Double.parseDouble(strToParse) : 0.0d
@@ -579,7 +599,7 @@ public class ItinerarioService {
 
 		returnActivityDTO.setUrl(pUrlOfActivity);
 		returnActivityDTO.setNombre(pTitleOfActivity);
-		LOGGER.info("Act "+returnActivityDTO.toString());
+//		LOGGER.info("Act "+returnActivityDTO.toString());
 		return returnActivityDTO;
 	}
 
