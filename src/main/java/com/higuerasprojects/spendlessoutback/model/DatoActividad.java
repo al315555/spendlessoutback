@@ -49,7 +49,7 @@ public class DatoActividad implements Serializable{
 	
 	@JsonFormat
 	@Column(nullable = true)
-	private Double precio;
+	private double precio;
 	
 	@JsonFormat
 	@Column(nullable = true)
@@ -57,19 +57,19 @@ public class DatoActividad implements Serializable{
 	
 	@JsonFormat
 	@Column(nullable = true)
-	private Long timeStampFrom;
+	private long timeStampFrom;
 	
 	@JsonFormat
 	@Column(nullable = true)
-	private Long timeStampTo;
+	private long timeStampTo;
 	
 	@JsonFormat
 	@Column(nullable = true)
-	private Double ubicacionLat;
+	private double ubicacionLat;
 	
 	@JsonFormat
 	@Column(nullable = true)
-	private Double ubicacionLon;
+	private double ubicacionLon;
 
 
 	/**

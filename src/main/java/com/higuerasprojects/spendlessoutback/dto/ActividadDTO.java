@@ -26,22 +26,22 @@ public class ActividadDTO implements Serializable {
 	private String nombre;
 
 	@JsonFormat
-	private Double precio;
+	private double precio;
 
 	@JsonFormat
 	private String url;
 
 	@JsonFormat
-	private Long timeStampFrom;
+	private long timeStampFrom;
 
 	@JsonFormat
-	private Long timeStampTo;
+	private long timeStampTo;
 
 	@JsonFormat
-	private Double ubicacionLat;
+	private double ubicacionLat;
 
 	@JsonFormat
-	private Double ubicacionLon;
+	private double ubicacionLon;
 
 	@Override
 	public boolean equals(Object obj) {
