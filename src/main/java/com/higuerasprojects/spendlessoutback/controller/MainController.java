@@ -58,6 +58,7 @@ public class MainController {
 		return new ResponseEntity<List<ActividadDTO>>(websiteEmbebbed, new HttpHeaders(), HttpStatus.OK);
 	}
 	
+	
 	@PostMapping("/itinerario/generar")
 	public ResponseEntity<ItinerarioDTO> generarItinerarioPostRestAPI(
 			@RequestHeader("Authorization-Bearer") String pToken,
