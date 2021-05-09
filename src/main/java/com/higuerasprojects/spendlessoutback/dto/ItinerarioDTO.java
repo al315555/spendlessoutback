@@ -50,6 +50,9 @@ public class ItinerarioDTO implements Serializable {
 	
 	@JsonFormat
 	private boolean hasCar;
+	
+	@JsonFormat
+	private long idUser;
 
 	/**
 	 * @return the hasCar
@@ -233,6 +236,20 @@ public class ItinerarioDTO implements Serializable {
 	 */
 	public void setUbicacionNombre(String ubicacionNombre) {
 		this.ubicacionNombre = ubicacionNombre;
+	}
+
+	/**
+	 * @return the idUser
+	 */
+	public long getIdUser() {
+		return idUser;
+	}
+
+	/**
+	 * @param idUser the idUser to set
+	 */
+	public void setIdUser(long idUser) {
+		this.idUser = idUser;
 	}
 
 	@Override

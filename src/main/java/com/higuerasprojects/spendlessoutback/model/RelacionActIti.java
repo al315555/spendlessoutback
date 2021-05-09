@@ -11,6 +11,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -25,7 +26,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = RelacionActIti.DATO_RELACIONACTITI_DATABASE)
+@Table(name = RelacionActIti.DATO_RELACIONACTITI_DATABASE, uniqueConstraints={@UniqueConstraint(columnNames={"idActividad", "idItinerario"})})
 @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
 public class RelacionActIti implements Serializable {
 
@@ -45,11 +46,11 @@ public class RelacionActIti implements Serializable {
 	private long id;
 
 	@JsonFormat
-	@Column(nullable = false, unique = true)
+	@Column(nullable = false)
 	private long idActividad;
 
 	@JsonFormat
-	@Column(nullable = false, unique = true)
+	@Column(nullable = false)
 	private long idItinerario;
 
 	@JsonFormat

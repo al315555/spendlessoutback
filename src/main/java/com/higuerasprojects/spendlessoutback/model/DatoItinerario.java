@@ -83,6 +83,10 @@ public class DatoItinerario implements Serializable{
 	@Column(nullable = true)
 	private boolean hasCar;
 	
+	@JsonFormat
+	@Column(nullable = false)
+	private long idUser;
+	
 	/**
 	 * @return the serialversionuid
 	 */
@@ -242,6 +246,20 @@ public class DatoItinerario implements Serializable{
 	 */
 	public void setHasCar(boolean hasCar) {
 		this.hasCar = hasCar;
+	}
+
+	/**
+	 * @return the idUser
+	 */
+	public long getIdUser() {
+		return idUser;
+	}
+
+	/**
+	 * @param idUser the idUser to set
+	 */
+	public void setIdUser(long idUser) {
+		this.idUser = idUser;
 	}
 
 }
