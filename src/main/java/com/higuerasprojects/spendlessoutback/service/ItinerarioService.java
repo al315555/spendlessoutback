@@ -538,7 +538,7 @@ public class ItinerarioService {
 	 * @return
 	 * @throws ParseException
 	 */
-	private static ActividadDTO createStaticActivity(String pDatesSectionOfActivity, String pTitleOfActivity,
+	private static final ActividadDTO createStaticActivity(String pDatesSectionOfActivity, String pTitleOfActivity,
 			String pPriceOfActivity, String pUrlOfActivity, String pLocationOfActivity) throws ParseException {
 		final ActividadDTO returnActivityDTO = new ActividadDTO();
 
@@ -555,7 +555,7 @@ public class ItinerarioService {
 				&& !NOT_FOUND_STR.equals(pPriceOfActivity)) {
 			String strToParse = pPriceOfActivity.contains("Free") || pPriceOfActivity.contains("Gratis") ? "0.0"
 					: pPriceOfActivity.replaceAll(",", ".").replace(' ', 'w').replaceAll("[A-Za-z€$\\-]", "");
-			strToParse = strToParse.substring(0, strToParse.lastIndexOf("."));
+//			strToParse = strToParse.substring(0, strToParse.lastIndexOf("."));
 			returnActivityDTO.setPrecio(
 					Objects.nonNull(strToParse) ? !strToParse.isEmpty() ? Double.parseDouble(strToParse) : 0.0d : 0.0d);
 		}
