@@ -79,6 +79,10 @@ public class DatoItinerario implements Serializable{
 	@Column(nullable = true)
 	private String ubicacionNombre;
 
+	@JsonFormat
+	@Column(nullable = true)
+	private boolean hasCar;
+	
 	/**
 	 * @return the serialversionuid
 	 */
@@ -224,6 +228,20 @@ public class DatoItinerario implements Serializable{
 	 */
 	public void setUbicacionNombre(String ubicacionNombre) {
 		this.ubicacionNombre = ubicacionNombre;
+	}
+
+	/**
+	 * @return the hasCar
+	 */
+	public boolean isHasCar() {
+		return hasCar;
+	}
+
+	/**
+	 * @param hasCar the hasCar to set
+	 */
+	public void setHasCar(boolean hasCar) {
+		this.hasCar = hasCar;
 	}
 
 }

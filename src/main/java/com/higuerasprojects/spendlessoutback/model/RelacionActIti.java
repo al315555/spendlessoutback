@@ -60,7 +60,7 @@ public class RelacionActIti implements Serializable {
 
 	@JsonFormat
 	@Column(nullable = false)
-	private int distancia;
+	private double distancia;
 
 	/**
 	 * @return the serialversionuid
@@ -100,7 +100,7 @@ public class RelacionActIti implements Serializable {
 	/**
 	 * @return the distancia
 	 */
-	public int getDistancia() {
+	public double getDistancia() {
 		return distancia;
 	}
 
@@ -135,7 +135,7 @@ public class RelacionActIti implements Serializable {
 	/**
 	 * @param distancia the distancia to set
 	 */
-	public void setDistancia(int distancia) {
+	public void setDistancia(double distancia) {
 		this.distancia = distancia;
 	}
 

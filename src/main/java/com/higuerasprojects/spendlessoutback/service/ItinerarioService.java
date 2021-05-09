@@ -12,9 +12,10 @@ import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -28,12 +29,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 //import org.slf4j.Logger;
 //import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import com.higuerasprojects.spendlessoutback.dto.ActividadDTO;
 import com.higuerasprojects.spendlessoutback.dto.ItinerarioDTO;
 import com.higuerasprojects.spendlessoutback.dto.jwt.JWTResponseDTO;
+import com.higuerasprojects.spendlessoutback.model.DatoActividad;
 import com.higuerasprojects.spendlessoutback.model.DatoItinerario;
+import com.higuerasprojects.spendlessoutback.model.RelacionActIti;
+import com.higuerasprojects.spendlessoutback.repos.DatoActividadRepository;
+import com.higuerasprojects.spendlessoutback.repos.DatoItinerarioRepository;
+import com.higuerasprojects.spendlessoutback.repos.RelacionActItiRepository;
 
 /**
  * @author Ruhimo
@@ -44,9 +51,15 @@ public class ItinerarioService {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(AuthUserService.class);
 
-//	@Autowired
-//	private DatoUsuarioRepository repo;
-//
+	@Autowired
+	private RelacionActItiRepository repoRelacion;
+
+	@Autowired
+	private DatoActividadRepository repoActividad;
+
+	@Autowired
+	private DatoItinerarioRepository repoItinerario;
+
 	@Autowired
 	private JWTAuthTokenService jwtService;
 
@@ -84,6 +97,35 @@ public class ItinerarioService {
 		return modelMapper.map(pDto, DatoItinerario.class);
 	}
 
+	private ActividadDTO convertToDTO(DatoActividad pEntity) {
+		return modelMapper.map(pEntity, ActividadDTO.class);
+	}
+
+	private DatoActividad convertToEntity(ActividadDTO pDto) {
+		return modelMapper.map(pDto, DatoActividad.class);
+	}
+
+	@Transactional(readOnly = true)
+	public List<ActividadDTO> retrieveActivitiesFromItinerario(final Long pItinerarioId) {
+		final List<ActividadDTO> activityList = new ArrayList<ActividadDTO>();
+		try {
+			final Optional<DatoItinerario> datoItinerarioEntity = repoItinerario.findById(pItinerarioId);
+			if (datoItinerarioEntity.isPresent()) {
+				final ItinerarioDTO itiDTO = convertToDTO(datoItinerarioEntity.get());
+				final List<RelacionActIti> relaciones = repoRelacion.findAllByItinerario(itiDTO.getId());
+				for (RelacionActIti relActIti : relaciones) {
+					final Optional<DatoActividad> act = repoActividad.findById(relActIti.getIdActividad());
+					if (act.isPresent()) {
+						activityList.add(convertToDTO(act.get()));
+					}
+				}
+			}
+		} catch (Exception ex) {
+			LOGGER.error(ex.getLocalizedMessage());
+		}
+		return activityList;
+	}
+
 	/**
 	 * 
 	 * The method return two objects: 1 - JWTResponseDTO 2 - UsuarioDTO
@@ -100,7 +142,7 @@ public class ItinerarioService {
 				final String username = jwtService.getUsernameFromToken(jWT);
 				LOGGER.info(String.format("- User %s is generating an itinerario -", username));
 				if (Objects.nonNull(username)) {
-					generateItinerarioWithParams(pItinerarioDTO);
+					itinerarioDTO = generateItinerarioWithParams(pItinerarioDTO);
 					refreshToken(pJWT, username);
 				}
 			}
@@ -109,14 +151,59 @@ public class ItinerarioService {
 		return itinerarioDTO;
 	}
 
-	public static final ItinerarioDTO generateItinerarioWithParams(final ItinerarioDTO pItinerarioDTO) {
-		LOGGER.info(pItinerarioDTO.toString());
-		final ItinerarioDTO resultItinerario = new ItinerarioDTO();
-		// TODO
-		// comprobar si itinerario existe THEN devolver itinerario ELSE crear uno nuevo
-		// IF hay que crear uno THEN buscamos actividades en rango de fechas y hora AND
-		// sumamos precios y buscamos la mejor opción de conjunto (probar distintas
-		// posibilidades) ELSE devolver itinerario existente
+	/**
+	 * comprobar si itinerario existe THEN devolver itinerario ELSE crear uno nuevo
+	 * IF hay que crear uno THEN buscamos actividades en rango de fechas y hora AND
+	 * sumamos precios y buscamos la mejor opción de conjunto (probar distintas
+	 * posibilidades) ELSE devolver itinerario existente
+	 *
+	 * @param pItinerarioDTO
+	 * @return
+	 */
+	@Transactional
+	private ItinerarioDTO generateItinerarioWithParams(final ItinerarioDTO pItinerarioDTO) {
+		LOGGER.info("- Transactional method begin - ITINERARIO DATA: " + pItinerarioDTO.toString());
+		ItinerarioDTO resultItinerario = new ItinerarioDTO();
+		if (Objects.nonNull(pItinerarioDTO) && pItinerarioDTO.isValid()) {
+			Optional<DatoItinerario> itinerarioOpt = repoItinerario.findById(pItinerarioDTO.getId());
+			List<DatoItinerario> itinerarioList = repoItinerario.findAllByUbicacion(pItinerarioDTO.getUbicacionNombre(),
+					pItinerarioDTO.getUbicacionlat(), pItinerarioDTO.getUbicacionLon());
+			if (itinerarioOpt.isPresent()) {
+				resultItinerario = convertToDTO(itinerarioOpt.get());
+			} else if (itinerarioList != null && !itinerarioList.isEmpty()) {
+				for (DatoItinerario dit : itinerarioList) {
+					ItinerarioDTO ditDTO = convertToDTO(dit);
+					if (ditDTO.equals(pItinerarioDTO)) {
+						resultItinerario = ditDTO;
+					}
+				}
+			} else {
+				final ArrayList<ActividadDTO> activities = gatherActivities(pItinerarioDTO.getUbicacionNombre(),
+						getDateWOTimeFormat(pItinerarioDTO.getTimeStampFrom()),
+						getDateWOTimeFormat(pItinerarioDTO.getTimeStampTo()));
+				final ItinerarioDTO currentItinerarioDTO = convertToDTO(
+						repoItinerario.save(convertToEntity(pItinerarioDTO)));
+				int ordenAcumulative = 1;
+				for (final ActividadDTO act : activities) {
+					final double lat1 = pItinerarioDTO.getUbicacionlat();
+					final double lng1 = pItinerarioDTO.getUbicacionLon();
+					final double lat2 = act.getUbicacionLat();
+					final double lng2 = act.getUbicacionLon();
+					final double distancia = distanciaCoord(lat1, lng1, lat2, lng2);
+					if (distancia <= pItinerarioDTO.getRadio()) {
+						final ActividadDTO currentActividadDTO = convertToDTO(repoActividad.save(convertToEntity(act)));
+						RelacionActIti relacion = new RelacionActIti();
+						relacion.setDistancia(distancia);
+						relacion.setOrden(ordenAcumulative++);
+						relacion.setIdActividad(currentActividadDTO.getId());
+						relacion.setIdItinerario(currentItinerarioDTO.getId());
+						repoRelacion.save(relacion);
+					}
+				}
+				resultItinerario = currentItinerarioDTO;
+			}
+		}
+		LOGGER.info("- Transactional method end - ITINERARIO DATA: " + resultItinerario.toString());
 		return resultItinerario;
 	}
 
@@ -161,6 +248,21 @@ public class ItinerarioService {
 	private static final String UNDERSCORE_VALUE_STRING = "_";
 	private static final String NOT_FOUND_STR = "NONE";
 	private static final String EMPTY_VALUE_STRING = "";
+
+	public static double distanciaCoord(double lat1, double lng1, double lat2, double lng2) {
+		// double radioTierra = 3958.75;//en millas
+		double radioTierra = 6371;// en kilómetros
+		double dLat = Math.toRadians(lat2 - lat1);
+		double dLng = Math.toRadians(lng2 - lng1);
+		double sindLat = Math.sin(dLat / 2);
+		double sindLng = Math.sin(dLng / 2);
+		double va1 = Math.pow(sindLat, 2)
+				+ Math.pow(sindLng, 2) * Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2));
+		double va2 = 2 * Math.atan2(Math.sqrt(va1), Math.sqrt(1 - va1));
+		double distancia = radioTierra * va2;
+
+		return distancia;
+	}
 
 	/**
 	 * Encode the string param into a quotedPrintable string to use in a URL
@@ -248,6 +350,14 @@ public class ItinerarioService {
 	 */
 	public static final String currentDate() {
 		return new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+	}
+
+	public static final String getDateWOTimeFormat(final long pDateTimeMillisecs) {
+		return new SimpleDateFormat("yyyy-MM-dd").format(new Date(pDateTimeMillisecs));
+	}
+
+	public static final String getTimeFormat(final long pDateTimeMillisecs) {
+		return new SimpleDateFormat("HH:mm").format(new Date(pDateTimeMillisecs));
 	}
 
 	public static final ArrayList<ActividadDTO> gatherActivities(final String location) throws Exception {

@@ -4,6 +4,7 @@
 package com.higuerasprojects.spendlessoutback.controller;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -46,15 +47,15 @@ public class MainController {
 	@Autowired
 	private ItinerarioService itinerarioService;
 
-	@GetMapping("/itinerario/generarItinerario")
-	public ResponseEntity<ArrayList<ActividadDTO>> activitiesGetRestAPI(){
-		ArrayList<ActividadDTO> websiteEmbebbed;
+	@GetMapping("/itinerario/actividades")
+	public ResponseEntity<List<ActividadDTO>> activitiesGetRestAPI(@RequestParam String itinerarioId){
+		List<ActividadDTO> websiteEmbebbed;
 		try {
-			websiteEmbebbed = ItinerarioService.gatherActivities(ItinerarioService.URL_LOCATION_VALENCIA);
+			websiteEmbebbed = itinerarioService.retrieveActivitiesFromItinerario(Long.getLong(itinerarioId));
 		} catch (Exception e) {
-			return new ResponseEntity<ArrayList<ActividadDTO>>(new ArrayList<>(), new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<List<ActividadDTO>>(new ArrayList<>(), new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
-		return new ResponseEntity<ArrayList<ActividadDTO>>(websiteEmbebbed, new HttpHeaders(), HttpStatus.OK);
+		return new ResponseEntity<List<ActividadDTO>>(websiteEmbebbed, new HttpHeaders(), HttpStatus.OK);
 	}
 	
 	@PostMapping("/itinerario/generar")

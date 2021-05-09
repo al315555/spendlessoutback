@@ -47,6 +47,23 @@ public class ItinerarioDTO implements Serializable {
 
 	@JsonFormat
 	private String ubicacionNombre;
+	
+	@JsonFormat
+	private boolean hasCar;
+
+	/**
+	 * @return the hasCar
+	 */
+	public boolean isHasCar() {
+		return hasCar;
+	}
+
+	/**
+	 * @param hasCar the hasCar to set
+	 */
+	public void setHasCar(boolean hasCar) {
+		this.hasCar = hasCar;
+	}
 
 	@Override
 	public boolean equals(Object obj) {
@@ -65,6 +82,17 @@ public class ItinerarioDTO implements Serializable {
 				&& ((ItinerarioDTO) obj).radio == (this.radio)
 				&& ((ItinerarioDTO) obj).precioTotal == (this.precioTotal);
 
+	}
+	
+	public boolean isValid() {
+		return this.ubicacionNombre != null 
+				&& !this.ubicacionNombre.isEmpty()
+				&& Double.isFinite(this.ubicacionLon) 
+				&& Double.isFinite(this.ubicacionlat)
+				&& this.timeStampFrom > 0.0
+				&& this.timeStampTo > 0.0
+				&& this.radio > 0.0
+				&& this.precioTotal >= 0.0;
 	}
 
 	/**
