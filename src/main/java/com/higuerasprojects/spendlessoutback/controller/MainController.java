@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -61,6 +62,7 @@ public class MainController {
 	
 	
 	@PostMapping("/itinerario/generar")
+	@Transactional(timeout = 90)
 	public DeferredResult<ResponseEntity<ItinerarioDTO>> generarItinerarioPostRestAPI(
 			@RequestHeader("Authorization-Bearer") String pToken,
 			@RequestBody ItinerarioDTO pItinerario) {
