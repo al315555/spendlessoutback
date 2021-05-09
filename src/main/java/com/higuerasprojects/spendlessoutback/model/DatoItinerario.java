@@ -69,7 +69,7 @@ public class DatoItinerario implements Serializable{
 	
 	@JsonFormat
 	@Column(nullable = true)
-	private double ubicacionlat;
+	private double ubicacionLat;
 	
 	@JsonFormat
 	@Column(nullable = true)
@@ -142,8 +142,8 @@ public class DatoItinerario implements Serializable{
 	/**
 	 * @return the ubicacionlat
 	 */
-	public double getUbicacionlat() {
-		return ubicacionlat;
+	public double getUbicacionLat() {
+		return ubicacionLat;
 	}
 
 	/**
@@ -212,8 +212,8 @@ public class DatoItinerario implements Serializable{
 	/**
 	 * @param ubicacionlat the ubicacionlat to set
 	 */
-	public void setUbicacionlat(double ubicacionlat) {
-		this.ubicacionlat = ubicacionlat;
+	public void setUbicacionLat(double ubicacionlat) {
+		this.ubicacionLat = ubicacionlat;
 	}
 
 	/**

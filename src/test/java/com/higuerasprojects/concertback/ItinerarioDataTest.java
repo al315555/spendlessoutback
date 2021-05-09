@@ -20,7 +20,7 @@ class ItinerarioDataTest {
 		try {
 			ItinerarioDTO testItinerario = new ItinerarioDTO();
 			testItinerario.setUbicacionNombre("Cádiz");
-			testItinerario.setUbicacionlat(36.54303);
+			testItinerario.setUbicacionLat(36.54303);
 			testItinerario.setUbicacionLon(-6.28189);
 			testItinerario.setRadio(3.3);
 			testItinerario.setPrecioTotal(22.2);
@@ -39,7 +39,7 @@ class ItinerarioDataTest {
 		try {
 			ItinerarioDTO testItinerario = new ItinerarioDTO();
 			testItinerario.setUbicacionNombre("Cádiz");
-			testItinerario.setUbicacionlat(36.54303);
+			testItinerario.setUbicacionLat(36.54303);
 			testItinerario.setUbicacionLon(-6.28189);
 			testItinerario.setRadio(3.3);
 			testItinerario.setPrecioTotal(22.2);
@@ -57,7 +57,7 @@ class ItinerarioDataTest {
 		try {
 			ItinerarioDTO testItinerario = new ItinerarioDTO();
 			testItinerario.setUbicacionNombre("Cádiz");
-			testItinerario.setUbicacionlat(36.54303);
+			testItinerario.setUbicacionLat(36.54303);
 			testItinerario.setUbicacionLon(-6.28189);
 			testItinerario.setRadio(3.3);
 			testItinerario.setPrecioTotal(22.2);
@@ -74,7 +74,7 @@ class ItinerarioDataTest {
 		try {
 			ItinerarioDTO testItinerario = new ItinerarioDTO();
 			testItinerario.setUbicacionNombre("Cádiz");
-			testItinerario.setUbicacionlat(36.54303);
+			testItinerario.setUbicacionLat(36.54303);
 			testItinerario.setUbicacionLon(-6.28189);
 			testItinerario.setRadio(3.3);
 			assertFalse(testItinerario.isValid());
@@ -90,7 +90,7 @@ class ItinerarioDataTest {
 		try {
 			ItinerarioDTO testItinerario = new ItinerarioDTO();
 			testItinerario.setUbicacionNombre("Cádiz");
-			testItinerario.setUbicacionlat(36.54303);
+			testItinerario.setUbicacionLat(36.54303);
 			testItinerario.setUbicacionLon(-6.28189);
 			assertFalse(testItinerario.isValid());
 		} catch (Exception e) {
@@ -105,7 +105,7 @@ class ItinerarioDataTest {
 		try {
 			ItinerarioDTO testItinerario = new ItinerarioDTO();
 			testItinerario.setUbicacionNombre("Cádiz");
-			testItinerario.setUbicacionlat(36.54303);
+			testItinerario.setUbicacionLat(36.54303);
 			assertFalse(testItinerario.isValid());
 		} catch (Exception e) {
 			assertFalse(e.getCause().getMessage().isEmpty());

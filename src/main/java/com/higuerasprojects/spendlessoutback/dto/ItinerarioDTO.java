@@ -40,7 +40,7 @@ public class ItinerarioDTO implements Serializable {
 	private long timeStampTo;
 
 	@JsonFormat
-	private double ubicacionlat;
+	private double ubicacionLat;
 
 	@JsonFormat
 	private double ubicacionLon;
@@ -76,7 +76,7 @@ public class ItinerarioDTO implements Serializable {
 		return this.ubicacionNombre != null && ((ItinerarioDTO) obj).ubicacionNombre != null
 				&& ((ItinerarioDTO) obj).ubicacionNombre.equals(this.ubicacionNombre)
 				&& ((ItinerarioDTO) obj).ubicacionLon == (this.ubicacionLon)
-				&& ((ItinerarioDTO) obj).ubicacionlat == (this.ubicacionlat)
+				&& ((ItinerarioDTO) obj).ubicacionLat == (this.ubicacionLat)
 				&& ((ItinerarioDTO) obj).timeStampFrom == (this.timeStampFrom)
 				&& ((ItinerarioDTO) obj).timeStampTo == (this.timeStampTo)
 				&& ((ItinerarioDTO) obj).radio == (this.radio)
@@ -88,7 +88,7 @@ public class ItinerarioDTO implements Serializable {
 		return this.ubicacionNombre != null 
 				&& !this.ubicacionNombre.isEmpty()
 				&& Double.isFinite(this.ubicacionLon) 
-				&& Double.isFinite(this.ubicacionlat)
+				&& Double.isFinite(this.ubicacionLat)
 				&& this.timeStampFrom > 0.0
 				&& this.timeStampTo > 0.0
 				&& this.radio > 0.0
@@ -147,8 +147,8 @@ public class ItinerarioDTO implements Serializable {
 	/**
 	 * @return the ubicacionlat
 	 */
-	public double getUbicacionlat() {
-		return ubicacionlat;
+	public double getUbicacionLat() {
+		return ubicacionLat;
 	}
 
 	/**
@@ -217,8 +217,8 @@ public class ItinerarioDTO implements Serializable {
 	/**
 	 * @param ubicacionlat the ubicacionlat to set
 	 */
-	public void setUbicacionlat(double ubicacionlat) {
-		this.ubicacionlat = ubicacionlat;
+	public void setUbicacionLat(double ubicacionlat) {
+		this.ubicacionLat = ubicacionlat;
 	}
 
 	/**

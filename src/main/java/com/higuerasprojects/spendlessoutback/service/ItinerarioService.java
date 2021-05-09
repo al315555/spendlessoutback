@@ -168,7 +168,7 @@ public class ItinerarioService {
 			LOGGER.info("- Transactional method begin - " + pItinerarioDTO);
 			Optional<DatoItinerario> itinerarioOpt = repoItinerario.findById(pItinerarioDTO.getId());
 			List<DatoItinerario> itinerarioList = repoItinerario.findAllByUbicacion(pItinerarioDTO.getUbicacionNombre(),
-					pItinerarioDTO.getUbicacionlat(), pItinerarioDTO.getUbicacionLon());
+					pItinerarioDTO.getUbicacionLat(), pItinerarioDTO.getUbicacionLon());
 			if (itinerarioOpt.isPresent()) {
 				resultItinerario = convertToDTO(itinerarioOpt.get());
 			} else if (itinerarioList != null && !itinerarioList.isEmpty()) {
@@ -186,7 +186,7 @@ public class ItinerarioService {
 						repoItinerario.save(convertToEntity(pItinerarioDTO)));
 				int ordenAcumulative = 1;
 				for (final ActividadDTO act : activities) {
-					final double lat1 = pItinerarioDTO.getUbicacionlat();
+					final double lat1 = pItinerarioDTO.getUbicacionLat();
 					final double lng1 = pItinerarioDTO.getUbicacionLon();
 					final double lat2 = act.getUbicacionLat();
 					final double lng2 = act.getUbicacionLon();
@@ -554,7 +554,7 @@ public class ItinerarioService {
 		if (Objects.nonNull(pPriceOfActivity) && !pPriceOfActivity.isEmpty()
 				&& !NOT_FOUND_STR.equals(pPriceOfActivity)) {
 			String strToParse = pPriceOfActivity.contains("Free") || pPriceOfActivity.contains("Gratis") ? "0.0"
-					: pPriceOfActivity.replaceAll(",", ".").replace(' ', 'w').replaceAll("[A-Za-z€$\\-]", ".");
+					: pPriceOfActivity.replaceAll(",", ".").replace(' ', 'w').replaceAll("[A-Za-z€$\\-]", "");
 			strToParse = strToParse.substring(0, strToParse.lastIndexOf("."));
 			returnActivityDTO.setPrecio(
 					Objects.nonNull(strToParse) ? !strToParse.isEmpty() ? Double.parseDouble(strToParse) : 0.0d : 0.0d);
