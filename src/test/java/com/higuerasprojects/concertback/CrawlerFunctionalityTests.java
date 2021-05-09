@@ -13,6 +13,15 @@ import com.higuerasprojects.spendlessoutback.service.ItinerarioService;
 
 class CrawlerFunctionalityTests {
 	
+	
+	@Test
+	void testMorellaActivities() {
+		ArrayList<ActividadDTO> actividades = ItinerarioService.gatherActivities("Morella",
+				 ItinerarioService.getDateWOTimeFormat(1620518456245L),
+				 ItinerarioService.getDateWOTimeFormat(1620604856251L));
+		assertFalse(actividades.isEmpty());
+	}
+	
 	/**
 	 * Exhaustive test that spend more than 16 hours to be tested.
 	 */

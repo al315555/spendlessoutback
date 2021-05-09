@@ -195,7 +195,8 @@ public class ItinerarioService {
 					final double lat2 = act.getUbicacionLat();
 					final double lng2 = act.getUbicacionLon();
 					final double distancia = distanciaCoord(lat1, lng1, lat2, lng2);
-					if (distancia <= pItinerarioDTO.getRadio()) {
+					LOGGER.info("- Transactional method - distanciaCoord from " + act.getNombre() + " is "+distancia+" - ");
+//					if (distancia <= pItinerarioDTO.getRadio()) {
 						final ActividadDTO currentActividadDTO = convertToDTO(repoActividad.save(convertToEntity(act)));
 						RelacionActIti relacion = new RelacionActIti();
 						relacion.setDistancia(distancia);
@@ -203,7 +204,7 @@ public class ItinerarioService {
 						relacion.setIdActividad(currentActividadDTO.getId());
 						relacion.setIdItinerario(currentItinerarioDTO.getId());
 						repoRelacion.save(relacion);
-					}
+//					}
 				}
 				resultItinerario = currentItinerarioDTO;
 				LOGGER.info("- Transactional method end - ITINERARIO DATA: " + resultItinerario.toString());
@@ -558,13 +559,13 @@ public class ItinerarioService {
 		if (Objects.nonNull(pPriceOfActivity) && !pPriceOfActivity.isEmpty()
 				&& !NOT_FOUND_STR.equals(pPriceOfActivity)) {
 			String strToParse = pPriceOfActivity.contains("Free") || pPriceOfActivity.contains("Gratis") ? "0.0"
-					: pPriceOfActivity.replaceAll(",", ".").replace(' ', 'w').replaceAll("[A-Za-z€$\\-]", "#")
-							.replaceAll("#", "");
+					: pPriceOfActivity.replaceAll(",", ".").replace(' ', 'w').replaceAll("[A-Za-zÀ-ÖØ-öø-ÿ€$\\-]", "").trim();
 			try {
 				returnActivityDTO.setPrecio(
 						Objects.nonNull(strToParse) ? !strToParse.isEmpty() ? Double.parseDouble(strToParse) : 0.0d
 								: 0.0d);
 			} catch (Exception ex) {
+				returnActivityDTO.setPrecio(-1);
 				LOGGER.error("PRECIO Error: " + strToParse);
 				LOGGER.error(ex.getLocalizedMessage());
 			}
@@ -578,6 +579,7 @@ public class ItinerarioService {
 
 		returnActivityDTO.setUrl(pUrlOfActivity);
 		returnActivityDTO.setNombre(pTitleOfActivity);
+		LOGGER.info("Act "+returnActivityDTO.toString());
 		return returnActivityDTO;
 	}
 
@@ -593,7 +595,7 @@ public class ItinerarioService {
 		Pattern patternRegex = Pattern.compile(SECOND_PAGE_INSTANCE);
 		final int indexFromBlockPagi = line.indexOf(INIT_BLOCK_PAGINATION);
 		final int indexFromEndBlockPagi = line.indexOf(END_BLOCK_PAGINATION);
-		int maxPageNumber = 0;
+		int maxPageNumber = 1;
 		if (indexFromBlockPagi != -1 && indexFromEndBlockPagi != -1) {
 			StringBuilder footerCtx = new StringBuilder(line.substring(indexFromBlockPagi, indexFromEndBlockPagi));
 			Matcher m = patternRegex.matcher(footerCtx);
