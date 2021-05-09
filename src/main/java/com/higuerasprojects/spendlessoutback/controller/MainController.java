@@ -48,10 +48,10 @@ public class MainController {
 	private ItinerarioService itinerarioService;
 
 	@GetMapping("/itinerario/actividades")
-	public ResponseEntity<List<ActividadDTO>> activitiesGetRestAPI(@RequestParam String itinerarioId){
+	public ResponseEntity<List<ActividadDTO>> activitiesGetRestAPI(@RequestParam long itinerarioId){
 		List<ActividadDTO> websiteEmbebbed;
 		try {
-			websiteEmbebbed = itinerarioService.retrieveActivitiesFromItinerario(Long.getLong(itinerarioId));
+			websiteEmbebbed = itinerarioService.retrieveActivitiesFromItinerario(itinerarioId);
 		} catch (Exception e) {
 			return new ResponseEntity<List<ActividadDTO>>(new ArrayList<>(), new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
