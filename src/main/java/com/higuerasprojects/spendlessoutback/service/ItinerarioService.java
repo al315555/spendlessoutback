@@ -162,9 +162,10 @@ public class ItinerarioService {
 	 */
 	@Transactional
 	private ItinerarioDTO generateItinerarioWithParams(final ItinerarioDTO pItinerarioDTO) {
-		LOGGER.info("- Transactional method begin - ITINERARIO DATA: " + pItinerarioDTO.toString());
+		LOGGER.info("- Transactional method begin -");
 		ItinerarioDTO resultItinerario = new ItinerarioDTO();
 		if (Objects.nonNull(pItinerarioDTO) && pItinerarioDTO.isValid()) {
+			LOGGER.info("- Transactional method begin - " + pItinerarioDTO);
 			Optional<DatoItinerario> itinerarioOpt = repoItinerario.findById(pItinerarioDTO.getId());
 			List<DatoItinerario> itinerarioList = repoItinerario.findAllByUbicacion(pItinerarioDTO.getUbicacionNombre(),
 					pItinerarioDTO.getUbicacionlat(), pItinerarioDTO.getUbicacionLon());
@@ -201,9 +202,10 @@ public class ItinerarioService {
 					}
 				}
 				resultItinerario = currentItinerarioDTO;
+				LOGGER.info("- Transactional method end - ITINERARIO DATA: " + resultItinerario.toString());
 			}
 		}
-		LOGGER.info("- Transactional method end - ITINERARIO DATA: " + resultItinerario.toString());
+		LOGGER.info("- Transactional method end - ");
 		return resultItinerario;
 	}
 

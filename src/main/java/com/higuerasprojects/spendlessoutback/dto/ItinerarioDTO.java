@@ -237,8 +237,15 @@ public class ItinerarioDTO implements Serializable {
 
 	@Override
 	public String toString() {
-		return new StringBuilder(this.nombre).append("|").append(this.ubicacionNombre).append("|")
-				.append(this.precioTotal).append("|").append(this.timeStampFrom).append("|").append(this.timeStampTo)
+		return new StringBuilder(this.nombre)
+				.append("|")
+				.append(this.ubicacionNombre)
+				.append("|")
+				.append(this.precioTotal)
+				.append("|")
+				.append(this.timeStampFrom)
+				.append("|")
+				.append(this.timeStampTo)
 				.toString();
 	}
 }
