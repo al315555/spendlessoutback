@@ -225,8 +225,8 @@ public class ItinerarioService {
 		return resultItinerario;
 	}
 
-	public List<ItinerarioDTO> retrieveItinerariosFromTownName(final String pTownName, final long pUbicacionLat,
-			final long pUbicacionLon) {
+	public List<ItinerarioDTO> retrieveItinerariosFromTownName(final String pTownName, final double pUbicacionLat,
+			final double pUbicacionLon) {
 		final ArrayList<ItinerarioDTO> itinerarios = new ArrayList<>();
 		repoItinerario.findAllByUbicacion(pTownName, pUbicacionLat, pUbicacionLon).stream().forEach(iti -> {
 			itinerarios.add(convertToDTO(iti));
@@ -244,8 +244,8 @@ public class ItinerarioService {
 	}
 	
 	public List<ItinerarioDTO> retrieveItinerariosFromUser(
-			final long pUserId,final String pTownName, final long pUbicacionLat,
-			final long pUbicacionLon) {
+			final long pUserId,final String pTownName, final double pUbicacionLat,
+			final double pUbicacionLon) {
 		final ArrayList<ItinerarioDTO> itinerarios = new ArrayList<>();
 		repoItinerario.findAllByUbicacion(pTownName, pUbicacionLat, pUbicacionLon).stream().forEach(iti -> {
 			itinerarios.add(convertToDTO(iti));

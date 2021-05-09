@@ -61,7 +61,7 @@ public class MainController {
 	}
 	
 	@GetMapping("/user/itinerario/listadobytown")
-	public ResponseEntity<List<ItinerarioDTO>> listadoItinerarioGetRestAPI(@RequestParam long userId, @RequestParam String townName, @RequestParam long townLat, @RequestParam long townLon){
+	public ResponseEntity<List<ItinerarioDTO>> listadoItinerarioGetRestAPI(@RequestParam long userId, @RequestParam String townName, @RequestParam double townLat, @RequestParam double townLon){
 		List<ItinerarioDTO> websiteEmbebbed;
 		try {
 			websiteEmbebbed = itinerarioService.retrieveItinerariosFromUser(userId, townName,townLat, townLon);
@@ -72,7 +72,7 @@ public class MainController {
 	}
 	
 	@GetMapping("/itinerario/listado")
-	public ResponseEntity<List<ItinerarioDTO>> listadoItinerarioGetRestAPI(@RequestParam String townName, @RequestParam long townLat, @RequestParam long townLon){
+	public ResponseEntity<List<ItinerarioDTO>> listadoItinerarioGetRestAPI(@RequestParam String townName, @RequestParam double townLat, @RequestParam double townLon){
 		List<ItinerarioDTO> websiteEmbebbed;
 		try {
 			websiteEmbebbed = itinerarioService.retrieveItinerariosFromTownName(townName,townLat, townLon);
