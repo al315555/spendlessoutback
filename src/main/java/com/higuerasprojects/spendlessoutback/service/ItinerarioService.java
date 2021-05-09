@@ -49,7 +49,7 @@ import com.higuerasprojects.spendlessoutback.repos.RelacionActItiRepository;
 @Service
 public class ItinerarioService {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(AuthUserService.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(ItinerarioService.class);
 
 	@Autowired
 	private RelacionActItiRepository repoRelacion;
@@ -170,20 +170,24 @@ public class ItinerarioService {
 			List<DatoItinerario> itinerarioList = repoItinerario.findAllByUbicacion(pItinerarioDTO.getUbicacionNombre(),
 					pItinerarioDTO.getUbicacionLat(), pItinerarioDTO.getUbicacionLon());
 			if (itinerarioOpt.isPresent()) {
+				LOGGER.info("- Transactional method begin - FOUND ONE IN DB ");
 				resultItinerario = convertToDTO(itinerarioOpt.get());
 			} else if (itinerarioList != null && !itinerarioList.isEmpty()) {
 				for (DatoItinerario dit : itinerarioList) {
 					ItinerarioDTO ditDTO = convertToDTO(dit);
 					if (ditDTO.equals(pItinerarioDTO)) {
+						LOGGER.info("- Transactional method begin - FOUND ONE IN DB INSIDE LIST ");
 						resultItinerario = ditDTO;
 					}
 				}
 			} else {
+				LOGGER.info("- Transactional method begin - CREATING ITI");
 				final ArrayList<ActividadDTO> activities = gatherActivities(pItinerarioDTO.getUbicacionNombre(),
 						getDateWOTimeFormat(pItinerarioDTO.getTimeStampFrom()),
 						getDateWOTimeFormat(pItinerarioDTO.getTimeStampTo()));
 				final ItinerarioDTO currentItinerarioDTO = convertToDTO(
 						repoItinerario.save(convertToEntity(pItinerarioDTO)));
+				LOGGER.info("- Transactional method begin - ACTIVITIES FOUND -  " + activities.size());
 				int ordenAcumulative = 1;
 				for (final ActividadDTO act : activities) {
 					final double lat1 = pItinerarioDTO.getUbicacionLat();
