@@ -49,7 +49,7 @@ public class MainController {
 	@Autowired
 	private ItinerarioService itinerarioService;
 
-	@GetMapping("/itinerario/listado")
+	@GetMapping("/user/itinerario/listado")
 	public ResponseEntity<List<ItinerarioDTO>> listadoItinerarioGetRestAPI(@RequestParam long userId){
 		List<ItinerarioDTO> websiteEmbebbed;
 		try {
