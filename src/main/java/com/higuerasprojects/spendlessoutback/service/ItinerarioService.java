@@ -561,8 +561,14 @@ public class ItinerarioService {
 					: pPriceOfActivity.replaceAll(",", ".").replace(' ', 'w').replaceAll("[A-Za-z€$\\-]", ".");
 			int dotLastIndex = strToParse.lastIndexOf(".");
 			strToParse = strToParse.substring(0, dotLastIndex != -1 ? dotLastIndex : strToParse.length());
-			returnActivityDTO.setPrecio(
-					Objects.nonNull(strToParse) ? !strToParse.isEmpty() ? Double.parseDouble(strToParse) : 0.0d : 0.0d);
+			try {
+				returnActivityDTO.setPrecio(
+						Objects.nonNull(strToParse) ? !strToParse.isEmpty() ? Double.parseDouble(strToParse) : 0.0d
+								: 0.0d);
+			} catch (Exception ex) {
+				LOGGER.error("PRECIO Error: " + strToParse);
+				LOGGER.error(ex.getLocalizedMessage());
+			}
 		}
 
 		final String[] latLon = pLocationOfActivity.split(",");
