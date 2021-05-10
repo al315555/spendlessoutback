@@ -5,6 +5,12 @@ package com.higuerasprojects.spendlessoutback.service;
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Properties;
+
+import javax.mail.Message;
+import javax.mail.Transport;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
 
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
@@ -126,12 +132,13 @@ public class AuthUserService {
 	 */
 	public boolean isEmailUserRegistered(String pEmailToCheck) {
 		boolean isEmailUserRegistered = false;
-		if(pEmailToCheck != null && !pEmailToCheck.isEmpty()) {
+		if (pEmailToCheck != null && !pEmailToCheck.isEmpty()) {
 			final int numberOfUsers = repo.countByEmail(pEmailToCheck.trim());
 			isEmailUserRegistered = numberOfUsers > 0;
 		}
 		return isEmailUserRegistered;
 	}
+
 	/**
 	 * Sign in of a new user into the database
 	 * 
@@ -140,14 +147,70 @@ public class AuthUserService {
 	 */
 	public JWTResponseDTO registerUserData(UsuarioDTO pNewUserData) {
 		final String passNoEncrypted = pNewUserData.encryptPass();
-		LOGGER.info("EncryptedPass - "+ pNewUserData.getPassword() );
+		LOGGER.info("EncryptedPass - " + pNewUserData.getPassword());
 		JWTResponseDTO response = new JWTResponseDTO(null, System.currentTimeMillis() - 1);
 		final UsuarioDTO createdUserData = convertToDTO(repo.save(convertToEntity(pNewUserData)));
 		if (createdUserData != null && createdUserData.getEmail() != null) {
 			final JWTRequestDTO jwtReq = new JWTRequestDTO(createdUserData.getEmail(), passNoEncrypted);
 			response = login(jwtReq);
+			sendRegistrationEmail(response, createdUserData.getEmail());
 		}
 		return response;
+	}
+
+	/**
+	 * method to verify the user account (it was sent via email)
+	 * 
+	 * @param token
+	 * @return
+	 */
+	public String verifyAccount(String token) {
+		try {
+			final String username = jwtService.getUsernameFromToken(token);
+			LOGGER.info(String.format("- User %s is validation their account -", username));
+			Optional<DatoUsuario> user = repo.findByEmail(username.trim());
+			if (user.isPresent()) {
+				DatoUsuario ue = user.get();
+				ue.setVerified(Boolean.TRUE);
+				repo.save(ue);
+				LOGGER.info(String.format("- User %s validated -", username));
+			}
+			return username;
+		} catch (Exception unknowException) {
+			LOGGER.error(unknowException.getLocalizedMessage());
+			throw unknowException;
+		}
+	}
+
+	/**
+	 * method to send the verification url to the new registered user via email
+	 * 
+	 * @param response
+	 * @param userEmail
+	 */
+	private static final void sendRegistrationEmail(final JWTResponseDTO response, final String userEmail) {
+		try {
+			final String URLToVerifyAccount = "https://spendlessoutapi.herokuapp.com/server/api/v1/user/account/verify?token="+response.getToken();
+			final Properties properties = new Properties();
+			final javax.mail.Session session = javax.mail.Session.getDefaultInstance(properties);
+			MimeMessage message = new MimeMessage(session);
+			message.setFrom(new InternetAddress((String) properties.get("mail.smtp.mail.sender")));
+			message.addRecipient(Message.RecipientType.TO, new InternetAddress(userEmail.trim()));
+			message.setSubject("Verifique su cuenta de SPENDLESSOUT");
+			message.setContent(
+					"<!DOCTYPE html><html><title>Spendlessout - OCIO POR LO JUSTO</title><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><link rel=\"stylesheet\" href=\"https://www.w3schools.com/w3css/4/w3.css\"><link rel=\"stylesheet\" href=\"https://fonts.googleapis.com/css?family=Raleway\"/><link rel=\"shortcut icon\" type=\"image/png\" href=\"https://cdn3.iconfinder.com/data/icons/outline-location-icon-set/64/Weapons_1-512.png\"/><body class=\"w3-light-grey\" style=\"font-family: \"Raleway\", sans-serif;\"><header class=\"w3-container w3-center w3-padding-32\"><h1>El equipo de <b>Spendlessout</b> se lo agradece</h1><p>Verifique su correo electrónico haciendo click en el <a"
+							+ URLToVerifyAccount + ">enlace</a></header></body></html>",
+					"text/html charset=utf-8");
+			Transport t = session.getTransport("smtp");
+			t.connect((String) properties.get("mail.smtp.user"), properties.getProperty("password"));
+			t.sendMessage(message, message.getAllRecipients());
+			t.close();
+
+		} catch (Exception uncheckedexception) {
+			LOGGER.error("EMAIL DID NOT SEND PROPERLY");
+			LOGGER.error(uncheckedexception.getLocalizedMessage());
+			uncheckedexception.printStackTrace();
+		}
 	}
 
 	/**
@@ -169,8 +232,8 @@ public class AuthUserService {
 					UsuarioDTO oldUserData = convertToDTO(user.get());
 					final boolean isChangingTheirData = oldUserData.getEmail().equals(pUserData.getEmail());
 					if (isChangingTheirData) {
-						pUserData.setPassword(
-								pUserData.isPasswordChanged() ? pUserData.encryptPassAndReturn() : oldUserData.getPassword());
+						pUserData.setPassword(pUserData.isPasswordChanged() ? pUserData.encryptPassAndReturn()
+								: oldUserData.getPassword());
 						editededUserData = convertToDTO(repo.save(convertToEntity(pUserData)));
 						LOGGER.info("- new token generating... -");
 						pJWT.setNewToken(jwtService.generateToken(username));

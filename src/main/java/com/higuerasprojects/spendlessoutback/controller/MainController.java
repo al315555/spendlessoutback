@@ -49,6 +49,19 @@ public class MainController {
 	@Autowired
 	private ItinerarioService itinerarioService;
 
+	@GetMapping("/user/account/verify")
+	public ResponseEntity<String> verificarCuentaGetRestAPI(@RequestParam String token){
+		String websiteEmbebbed = "<!DOCTYPE html><html><body><h1>%s validado correctamente.</h1><p>Gracias por validar la cuenta.</p><p>Esperemos que disfrute de la aplicación</p><p>Atentamente el equipo de Spendlessout</p></body></html>";
+		String emailVerified = "";
+		try {
+			emailVerified = userService.verifyAccount(token);
+		} catch (Exception e) {
+			return new ResponseEntity<String>("ERROR DESCONOCIDO", new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		return new ResponseEntity<String>(String.format(websiteEmbebbed, emailVerified) , new HttpHeaders(), HttpStatus.OK);
+	}
+	
+	
 	@GetMapping("/user/itinerario/listado")
 	public ResponseEntity<List<ItinerarioDTO>> listadoItinerarioGetRestAPI(@RequestParam long userId){
 		List<ItinerarioDTO> websiteEmbebbed;

@@ -50,7 +50,7 @@ public class DatoUsuario implements Serializable{
 	private String apellidos;
 	
 	@JsonFormat
-	@Column(nullable = false)
+	@Column(nullable = false, unique=true)
 	private String email;
 	
 	@JsonFormat
@@ -60,6 +60,10 @@ public class DatoUsuario implements Serializable{
 	@JsonFormat
 	@Column(nullable = false)
 	private String password;
+	
+	@JsonFormat
+	@Column(nullable = true)
+	private boolean verified;
 
 	/**
 	 * @return the id
@@ -143,6 +147,20 @@ public class DatoUsuario implements Serializable{
 	 */
 	public void setPassword(String password) {
 		this.password = password;
+	}
+
+	/**
+	 * @return the verified
+	 */
+	public boolean isVerified() {
+		return verified;
+	}
+
+	/**
+	 * @param verified the verified to set
+	 */
+	public void setVerified(boolean verified) {
+		this.verified = verified;
 	}
 	
 }

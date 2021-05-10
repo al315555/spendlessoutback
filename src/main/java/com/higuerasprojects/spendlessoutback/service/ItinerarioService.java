@@ -296,7 +296,16 @@ public class ItinerarioService {
 	private static final String NOT_FOUND_STR = "NONE";
 	private static final String EMPTY_VALUE_STRING = "";
 
-	public static double distanciaCoord(double lat1, double lng1, double lat2, double lng2) {
+	/**
+	 * HAVERSINE ALGORITHM method implementation
+	 * 
+	 * @param lat1
+	 * @param lng1
+	 * @param lat2
+	 * @param lng2
+	 * @return
+	 */
+	public static final double distanciaCoord(double lat1, double lng1, double lat2, double lng2) {
 		// double radioTierra = 3958.75;//en millas
 		double radioTierra = 6371;// en kilómetros
 		double dLat = Math.toRadians(lat2 - lat1);
@@ -308,7 +317,7 @@ public class ItinerarioService {
 		double va2 = 2 * Math.atan2(Math.sqrt(va1), Math.sqrt(1 - va1));
 		double distancia = radioTierra * va2;
 
-		return distancia;
+		return Math.round(distancia * 1000.0) / 1000.0;
 	}
 
 	/**

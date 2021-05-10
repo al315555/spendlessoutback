@@ -39,6 +39,9 @@ public class UsuarioDTO implements Serializable, Passwortable{
 	@JsonFormat
 	private boolean passwordChanged;
 	
+	@JsonFormat
+	private boolean verified;
+	
 	/**
 	 * @return the id
 	 */
@@ -135,6 +138,20 @@ public class UsuarioDTO implements Serializable, Passwortable{
 	 */
 	public void setPasswordChanged(boolean passwordChanged) {
 		this.passwordChanged = passwordChanged;
+	}
+
+	/**
+	 * @return the verified
+	 */
+	public boolean isVerified() {
+		return verified;
+	}
+
+	/**
+	 * @param verified the verified to set
+	 */
+	public void setVerified(boolean verified) {
+		this.verified = verified;
 	}
 
 }
