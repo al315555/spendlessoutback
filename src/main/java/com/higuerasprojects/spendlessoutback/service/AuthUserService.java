@@ -260,8 +260,8 @@ public class AuthUserService {
 			message.addRecipient(Message.RecipientType.TO, new InternetAddress(userEmail.trim()));
 			message.setSubject("Verifique su cuenta de SPENDLESSOUT");
 			message.setContent(
-					"<!DOCTYPE html><html><title>Spendlessout - OCIO POR LO JUSTO</title><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><link rel=\"stylesheet\" href=\"https://www.w3schools.com/w3css/4/w3.css\"><link rel=\"stylesheet\" href=\"https://fonts.googleapis.com/css?family=Raleway\"/><link rel=\"shortcut icon\" type=\"image/png\" href=\"https://cdn3.iconfinder.com/data/icons/outline-location-icon-set/64/Weapons_1-512.png\"/><body class=\"w3-light-grey\" style=\"font-family: \"Raleway\", sans-serif;\"><header class=\"w3-container w3-center w3-padding-32\"><h1>El equipo de <b>Spendlessout</b> se lo agradece</h1><p>Verifique su correo electrónico haciendo click en el <a"
-							+ URLToVerifyAccount + ">enlace</a></header></body></html>",
+					"<!DOCTYPE html><html><title>Spendlessout - OCIO POR LO JUSTO</title><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><link rel=\"stylesheet\" href=\"https://www.w3schools.com/w3css/4/w3.css\"><link rel=\"stylesheet\" href=\"https://fonts.googleapis.com/css?family=Raleway\"/><link rel=\"shortcut icon\" type=\"image/png\" href=\"https://cdn3.iconfinder.com/data/icons/outline-location-icon-set/64/Weapons_1-512.png\"/><body class=\"w3-light-grey\" style=\"font-family: \"Raleway\", sans-serif;\"><header class=\"w3-container w3-center w3-padding-32\"><h1>Spendlessout - OCIO POR LO JUSTO</h1><h3>Gracias de parte del equipo de <b>Spendlessout</b> por hacer uso de la aplicación.</h3><p>Verifique su correo electrónico haciendo click en el <a href=\""
+							+ URLToVerifyAccount + "\">enlace</a></header></body></html>",
 					"text/html; charset=utf-8;");
 			Transport t = session.getTransport("smtp");
 			t.connect(user, password);
