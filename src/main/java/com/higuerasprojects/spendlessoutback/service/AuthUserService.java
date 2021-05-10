@@ -234,9 +234,9 @@ public class AuthUserService {
 		try {
 			final String host="smtp.gmail.com";
 			final String starttls="true";
-			final String mail="gypsywar2019@gmail.com";
-			final String password="familiagitana2019";
-			final String user="gypsywar2019@gmail.com";
+			final String mail="noreply.spendlessout@gmail.com";
+			final String password="Spend123LessOut2021";
+			final String user="noreply.spendlessout@gmail.com";
 			final String auth="true";
 			
 			final Properties properties = new Properties();
