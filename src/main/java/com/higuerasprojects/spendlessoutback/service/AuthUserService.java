@@ -250,7 +250,7 @@ public class AuthUserService {
             properties.put("mail.smtp.password", password);
 			
 			final String URLToVerifyAccount = "https://spendlessoutapi.herokuapp.com/server/api/v1/user/account/verify?token="+response.getToken();
-			final javax.mail.Session session = javax.mail.Session.getDefaultInstance(properties);
+			final javax.mail.Session session = javax.mail.Session.getInstance(properties);
 			MimeMessage message = new MimeMessage(session);
 			message.setFrom(new InternetAddress(mail));
 			message.addRecipient(Message.RecipientType.TO, new InternetAddress(userEmail.trim()));
