@@ -182,36 +182,6 @@ public class AuthUserService {
 		}
 	}
 
-	/**
-	 * method to send the verification url to the new registered user via email
-	 * 
-	 * @param response
-	 * @param userEmail
-	 */
-	private static final void sendRegistrationEmail(final JWTResponseDTO response, final String userEmail) {
-		try {
-			final String URLToVerifyAccount = "https://spendlessoutapi.herokuapp.com/server/api/v1/user/account/verify?token="+response.getToken();
-			final Properties properties = new Properties();
-			final javax.mail.Session session = javax.mail.Session.getDefaultInstance(properties);
-			MimeMessage message = new MimeMessage(session);
-			message.setFrom(new InternetAddress((String) properties.get("mail.smtp.mail.sender")));
-			message.addRecipient(Message.RecipientType.TO, new InternetAddress(userEmail.trim()));
-			message.setSubject("Verifique su cuenta de SPENDLESSOUT");
-			message.setContent(
-					"<!DOCTYPE html><html><title>Spendlessout - OCIO POR LO JUSTO</title><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><link rel=\"stylesheet\" href=\"https://www.w3schools.com/w3css/4/w3.css\"><link rel=\"stylesheet\" href=\"https://fonts.googleapis.com/css?family=Raleway\"/><link rel=\"shortcut icon\" type=\"image/png\" href=\"https://cdn3.iconfinder.com/data/icons/outline-location-icon-set/64/Weapons_1-512.png\"/><body class=\"w3-light-grey\" style=\"font-family: \"Raleway\", sans-serif;\"><header class=\"w3-container w3-center w3-padding-32\"><h1>El equipo de <b>Spendlessout</b> se lo agradece</h1><p>Verifique su correo electrónico haciendo click en el <a"
-							+ URLToVerifyAccount + ">enlace</a></header></body></html>",
-					"text/html charset=utf-8");
-			Transport t = session.getTransport("smtp");
-			t.connect((String) properties.get("mail.smtp.user"), properties.getProperty("password"));
-			t.sendMessage(message, message.getAllRecipients());
-			t.close();
-
-		} catch (Exception uncheckedexception) {
-			LOGGER.error("EMAIL DID NOT SEND PROPERLY");
-			LOGGER.error(uncheckedexception.getLocalizedMessage());
-			uncheckedexception.printStackTrace();
-		}
-	}
 
 	/**
 	 * Save the own data that was edited by the user
@@ -254,4 +224,34 @@ public class AuthUserService {
 		return modelMapper.map(pDto, DatoUsuario.class);
 	}
 
+	/**
+	 * method to send the verification url to the new registered user via email
+	 * 
+	 * @param response
+	 * @param userEmail
+	 */
+	private static final void sendRegistrationEmail(final JWTResponseDTO response, final String userEmail) {
+		try {
+			final String URLToVerifyAccount = "https://spendlessoutapi.herokuapp.com/server/api/v1/user/account/verify?token="+response.getToken();
+			final Properties properties = new Properties();
+			final javax.mail.Session session = javax.mail.Session.getDefaultInstance(properties);
+			MimeMessage message = new MimeMessage(session);
+			message.setFrom(new InternetAddress((String) properties.get("mail.smtp.mail.sender")));
+			message.addRecipient(Message.RecipientType.TO, new InternetAddress(userEmail.trim()));
+			message.setSubject("Verifique su cuenta de SPENDLESSOUT");
+			message.setContent(
+					"<!DOCTYPE html><html><title>Spendlessout - OCIO POR LO JUSTO</title><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><link rel=\"stylesheet\" href=\"https://www.w3schools.com/w3css/4/w3.css\"><link rel=\"stylesheet\" href=\"https://fonts.googleapis.com/css?family=Raleway\"/><link rel=\"shortcut icon\" type=\"image/png\" href=\"https://cdn3.iconfinder.com/data/icons/outline-location-icon-set/64/Weapons_1-512.png\"/><body class=\"w3-light-grey\" style=\"font-family: \"Raleway\", sans-serif;\"><header class=\"w3-container w3-center w3-padding-32\"><h1>El equipo de <b>Spendlessout</b> se lo agradece</h1><p>Verifique su correo electrónico haciendo click en el <a"
+							+ URLToVerifyAccount + ">enlace</a></header></body></html>",
+					"text/html charset=utf-8");
+			Transport t = session.getTransport("smtp");
+			t.connect((String) properties.get("mail.smtp.user"), properties.getProperty("password"));
+			t.sendMessage(message, message.getAllRecipients());
+			t.close();
+			
+		} catch (Exception uncheckedexception) {
+			LOGGER.error("EMAIL DID NOT SEND PROPERLY");
+			LOGGER.error(uncheckedexception.getLocalizedMessage());
+			uncheckedexception.printStackTrace();
+		}
+	}
 }
