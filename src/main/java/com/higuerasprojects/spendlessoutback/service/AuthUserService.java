@@ -233,24 +233,28 @@ public class AuthUserService {
 	private static final void sendRegistrationEmail(final JWTResponseDTO response, final String userEmail) {
 		try {
 			final String host="smtp.gmail.com";
-			final boolean starttls=true;
-			final int port=587;
+			final String starttls="true";
 			final String mail="gypsywar2019@gmail.com";
 			final String password="familiagitana2019";
 			final String user="gypsywar2019@gmail.com";
-			final boolean auth=true;
+			final String auth="true";
 			
 			final Properties properties = new Properties();
 			properties.put("mail.smtp.host", host);
             properties.put("mail.smtp.starttls.enable", starttls);
-            properties.put("mail.smtp.port", port);
             properties.put("mail.smtp.mail.sender", mail);
             properties.put("mail.smtp.user", user);
             properties.put("mail.smtp.auth", auth);
             properties.put("mail.smtp.password", password);
-			
+            properties.put("mail.debug", "true"); 
+            properties.setProperty("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");   
+            properties.setProperty("mail.smtp.socketFactory.fallback", "false");   
+            properties.setProperty("mail.smtp.port", "465");   
+            properties.setProperty("mail.smtp.socketFactory.port", "465"); 
+            
 			final String URLToVerifyAccount = "https://spendlessoutapi.herokuapp.com/server/api/v1/user/account/verify?token="+response.getToken();
-			final javax.mail.Session session = javax.mail.Session.getInstance(properties);
+			final javax.mail.Session session = javax.mail.Session.getDefaultInstance(properties);
+			session.setDebug(true);
 			MimeMessage message = new MimeMessage(session);
 			message.setFrom(new InternetAddress(mail));
 			message.addRecipient(Message.RecipientType.TO, new InternetAddress(userEmail.trim()));
