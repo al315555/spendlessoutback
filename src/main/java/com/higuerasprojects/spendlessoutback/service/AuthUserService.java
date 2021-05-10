@@ -232,11 +232,27 @@ public class AuthUserService {
 	 */
 	private static final void sendRegistrationEmail(final JWTResponseDTO response, final String userEmail) {
 		try {
-			final String URLToVerifyAccount = "https://spendlessoutapi.herokuapp.com/server/api/v1/user/account/verify?token="+response.getToken();
+			final String host="smtp.gmail.com";
+			final boolean starttls=true;
+			final int port=25;
+			final String mail="gypsywar2019@gmail.com";
+			final String password="familiagitana2019";
+			final String user="gypsywar2019@gmail.com";
+			final boolean auth=true;
+			
 			final Properties properties = new Properties();
+			properties.put("mail.smtp.host", host);
+            properties.put("mail.smtp.starttls.enable", starttls);
+            properties.put("mail.smtp.port", port);
+            properties.put("mail.smtp.mail.sender", mail);
+            properties.put("mail.smtp.user", user);
+            properties.put("mail.smtp.auth", auth);
+            properties.put("mail.smtp.password", password);
+			
+			final String URLToVerifyAccount = "https://spendlessoutapi.herokuapp.com/server/api/v1/user/account/verify?token="+response.getToken();
 			final javax.mail.Session session = javax.mail.Session.getDefaultInstance(properties);
 			MimeMessage message = new MimeMessage(session);
-			message.setFrom(new InternetAddress((String) properties.get("mail.smtp.mail.sender")));
+			message.setFrom(new InternetAddress(mail));
 			message.addRecipient(Message.RecipientType.TO, new InternetAddress(userEmail.trim()));
 			message.setSubject("Verifique su cuenta de SPENDLESSOUT");
 			message.setContent(
@@ -244,7 +260,7 @@ public class AuthUserService {
 							+ URLToVerifyAccount + ">enlace</a></header></body></html>",
 					"text/html charset=utf-8");
 			Transport t = session.getTransport("smtp");
-			t.connect((String) properties.get("mail.smtp.user"), properties.getProperty("password"));
+			t.connect(user, password);
 			t.sendMessage(message, message.getAllRecipients());
 			t.close();
 			
