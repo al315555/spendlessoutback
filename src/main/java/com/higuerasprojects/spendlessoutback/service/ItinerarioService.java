@@ -163,7 +163,7 @@ public class ItinerarioService {
 	 * @param pItinerarioDTO
 	 * @return
 	 */
-	@Transactional
+	@Transactional(timeout = 120)
 	private ItinerarioDTO generateItinerarioWithParams(final ItinerarioDTO pItinerarioDTO) {
 		LOGGER.info("- Transactional method begin -");
 		ItinerarioDTO resultItinerario = new ItinerarioDTO();
@@ -205,7 +205,10 @@ public class ItinerarioService {
 					final String urlTemp = act.getUrl();
 					if (distancia <= pItinerarioDTO.getRadio() && !numberOfObjsInTheList.containsKey(urlTemp) 
 							&& precioAcumulative <= pItinerarioDTO.getPrecioTotal() 
-							&& (precioAcumulative +  act.getPrecio())<= pItinerarioDTO.getPrecioTotal() ) {
+							&& (precioAcumulative +  act.getPrecio())<= pItinerarioDTO.getPrecioTotal() 
+							&& ( (act.getTimeStampTo()   > 0  && act.getTimeStampTo()   <=  pItinerarioDTO.getTimeStampTo()   ) || act.getTimeStampTo()   == 0 ) 
+							&& ( (act.getTimeStampFrom() > 0  && act.getTimeStampFrom() >=  pItinerarioDTO.getTimeStampFrom() ) || act.getTimeStampFrom() == 0 )
+						) {
 						precioAcumulative += act.getPrecio();
 						numberOfObjsInTheList.put(urlTemp, distancia);
 						final ActividadDTO currentActividadDTO = convertToDTO(repoActividad.save(convertToEntity(act)));

@@ -108,7 +108,7 @@ public class MainController {
 	
 	
 	@PostMapping("/itinerario/generar")
-	@Transactional(timeout = 91)
+	@Transactional(timeout = 120)
 	public DeferredResult<ResponseEntity<ItinerarioDTO>> generarItinerarioPostRestAPI(
 			@RequestHeader("Authorization-Bearer") String pToken,
 			@RequestBody ItinerarioDTO pItinerario) {
