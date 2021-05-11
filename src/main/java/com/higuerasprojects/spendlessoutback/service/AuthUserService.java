@@ -232,10 +232,11 @@ public class AuthUserService {
 	 */
 	private static final void sendRegistrationEmail(final JWTResponseDTO response, final String userEmail) {
 		try {
+			final String URLToVerifyAccount = "https://spendlessoutapi.herokuapp.com/server/api/v1/user/account/verify?token="+response.getToken();
 			final String host="smtp.gmail.com";
 			final String starttls="true";
 			final String mail="noreply.spendlessout@gmail.com";
-			final String password="Spend123LessOut20212";
+			final String password="Spend123LessOut20213";
 			final String user="noreply.spendlessout@gmail.com";
 			final String auth="true";
 			
@@ -251,11 +252,14 @@ public class AuthUserService {
             properties.setProperty("mail.smtp.socketFactory.fallback", "false");   
             properties.setProperty("mail.smtp.port", "465");   
             properties.setProperty("mail.smtp.socketFactory.port", "465"); 
+            final javax.mail.Session session = javax.mail.Session.getInstance(properties, new javax.mail.Authenticator() {
+            	protected javax.mail.PasswordAuthentication getPasswordAuthentication() {
+            		return new javax.mail.PasswordAuthentication(user, password);
+            	}
+            });
+            session.setDebug(true);
+            MimeMessage message = new MimeMessage(session);
             
-			final String URLToVerifyAccount = "https://spendlessoutapi.herokuapp.com/server/api/v1/user/account/verify?token="+response.getToken();
-			final javax.mail.Session session = javax.mail.Session.getDefaultInstance(properties);
-			session.setDebug(true);
-			MimeMessage message = new MimeMessage(session);
 			message.setFrom(new InternetAddress(mail));
 			message.addRecipient(Message.RecipientType.TO, new InternetAddress(userEmail.trim()));
 			message.setSubject("Verifique su cuenta de SPENDLESSOUT");
