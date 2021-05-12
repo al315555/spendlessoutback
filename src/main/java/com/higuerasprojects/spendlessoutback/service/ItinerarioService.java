@@ -136,6 +136,7 @@ public class ItinerarioService {
 	 * @param pUserRequest
 	 * @return Map<String, Object>
 	 */
+	@Transactional(timeout = 1000000)
 	public ItinerarioDTO generateItinerario(final ItinerarioDTO pItinerarioDTO, final JWTResponseDTO pJWT) {
 		LOGGER.info("- Generate itinerario Service init -");
 		ItinerarioDTO itinerarioDTO = null;
@@ -163,7 +164,7 @@ public class ItinerarioService {
 	 * @param pItinerarioDTO
 	 * @return
 	 */
-	@Transactional(timeout = 120)
+	@Transactional(timeout = 1000000)
 	private ItinerarioDTO generateItinerarioWithParams(final ItinerarioDTO pItinerarioDTO) {
 		LOGGER.info("- Transactional method begin -");
 		ItinerarioDTO resultItinerario = new ItinerarioDTO();
@@ -174,56 +175,58 @@ public class ItinerarioService {
 					pItinerarioDTO.getUbicacionLat(), pItinerarioDTO.getUbicacionLon());
 			if (itinerarioOpt.isPresent()) {
 				LOGGER.info("- Transactional method begin - FOUND ONE IN DB ");
-				resultItinerario = convertToDTO(itinerarioOpt.get());
-			} else if (itinerarioList != null && !itinerarioList.isEmpty()) {
+				return convertToDTO(itinerarioOpt.get());
+			}
+			if (itinerarioList != null && !itinerarioList.isEmpty()) {
 				for (DatoItinerario dit : itinerarioList) {
 					ItinerarioDTO ditDTO = convertToDTO(dit);
 					if (ditDTO.equals(pItinerarioDTO)) {
 						LOGGER.info("- Transactional method begin - FOUND ONE ITIN IN DB ");
-						resultItinerario = ditDTO;
+						return ditDTO;
 					}
 				}
-			} else {
-				LOGGER.info("- Transactional method begin - CREATING ITI");
-				final ArrayList<ActividadDTO> activities = gatherActivities(pItinerarioDTO.getUbicacionNombre(),
-						getDateWOTimeFormat(pItinerarioDTO.getTimeStampFrom()),
-						getDateWOTimeFormat(pItinerarioDTO.getTimeStampTo()));
-				final ItinerarioDTO currentItinerarioDTO = convertToDTO(
-						repoItinerario.save(convertToEntity(pItinerarioDTO)));
-				LOGGER.info("- Transactional method begin - ACTIVITIES FOUND -  " + activities.size());
-				int ordenAcumulative = 1;
-				final HashMap<String, Double> numberOfObjsInTheList = new HashMap<>();
-				double precioAcumulative = 0.0d;
-				for (final ActividadDTO act : activities) {
-					final double lat1 = pItinerarioDTO.getUbicacionLat();
-					final double lng1 = pItinerarioDTO.getUbicacionLon();
-					final double lat2 = act.getUbicacionLat();
-					final double lng2 = act.getUbicacionLon();
-					final double distancia = distanciaCoord(lat1, lng1, lat2, lng2);
-					LOGGER.info("- Transactional method - distanciaCoord from " + act.getNombre() + " is " + distancia
-							+ " - ");
-					final String urlTemp = act.getUrl();
-					if (distancia <= pItinerarioDTO.getRadio() && !numberOfObjsInTheList.containsKey(urlTemp) 
-							&& precioAcumulative <= pItinerarioDTO.getPrecioTotal() 
-							&& (precioAcumulative +  act.getPrecio())<= pItinerarioDTO.getPrecioTotal() 
-							&& ( (act.getTimeStampTo()   > 0  && act.getTimeStampTo()   <=  pItinerarioDTO.getTimeStampTo()   ) || act.getTimeStampTo()   == 0 ) 
-							&& ( (act.getTimeStampFrom() > 0  && act.getTimeStampFrom() >=  pItinerarioDTO.getTimeStampFrom() ) || act.getTimeStampFrom() == 0 )
-						) {
-						precioAcumulative += act.getPrecio();
-						numberOfObjsInTheList.put(urlTemp, distancia);
-						final ActividadDTO currentActividadDTO = convertToDTO(repoActividad.save(convertToEntity(act)));
-						RelacionActIti relacion = new RelacionActIti();
-						relacion.setDistancia(distancia);
-						relacion.setOrden(ordenAcumulative++);
-						relacion.setIdActividad(currentActividadDTO.getId());
-						relacion.setIdItinerario(currentItinerarioDTO.getId());
-						repoRelacion.save(relacion);
-					}
-				}
-				resultItinerario = currentItinerarioDTO;
-				LOGGER.info("- Transactional method end - ITINERARIO DATA: " + resultItinerario.toString());
 			}
+			LOGGER.info("- Transactional method begin - CREATING ITI");
+			final ArrayList<ActividadDTO> activities = gatherActivities(pItinerarioDTO.getUbicacionNombre(),
+					getDateWOTimeFormat(pItinerarioDTO.getTimeStampFrom()),
+					getDateWOTimeFormat(pItinerarioDTO.getTimeStampTo()));
+			final ItinerarioDTO currentItinerarioDTO = convertToDTO(
+					repoItinerario.save(convertToEntity(pItinerarioDTO)));
+			LOGGER.info("- Transactional method begin - ACTIVITIES FOUND -  " + activities.size());
+			int ordenAcumulative = 1;
+			final HashMap<String, Double> numberOfObjsInTheList = new HashMap<>();
+			double precioAcumulative = 0.0d;
+			for (final ActividadDTO act : activities) {
+				final double lat1 = pItinerarioDTO.getUbicacionLat();
+				final double lng1 = pItinerarioDTO.getUbicacionLon();
+				final double lat2 = act.getUbicacionLat();
+				final double lng2 = act.getUbicacionLon();
+				final double distancia = distanciaCoord(lat1, lng1, lat2, lng2);
+				LOGGER.info(
+						"- Transactional method - distanciaCoord from " + act.getNombre() + " is " + distancia + " - ");
+				final String urlTemp = act.getUrl();
+				if (distancia <= pItinerarioDTO.getRadio() && !numberOfObjsInTheList.containsKey(urlTemp)
+						&& precioAcumulative <= pItinerarioDTO.getPrecioTotal()
+						&& (precioAcumulative + act.getPrecio()) <= pItinerarioDTO.getPrecioTotal()
+						&& ((act.getTimeStampTo() > 0 && act.getTimeStampTo() <= pItinerarioDTO.getTimeStampTo())
+								|| act.getTimeStampTo() == 0)
+						&& ((act.getTimeStampFrom() > 0 && act.getTimeStampFrom() >= pItinerarioDTO.getTimeStampFrom())
+								|| act.getTimeStampFrom() == 0)) {
+					precioAcumulative += act.getPrecio();
+					numberOfObjsInTheList.put(urlTemp, distancia);
+					final ActividadDTO currentActividadDTO = convertToDTO(repoActividad.save(convertToEntity(act)));
+					RelacionActIti relacion = new RelacionActIti();
+					relacion.setDistancia(distancia);
+					relacion.setOrden(ordenAcumulative++);
+					relacion.setIdActividad(currentActividadDTO.getId());
+					relacion.setIdItinerario(currentItinerarioDTO.getId());
+					repoRelacion.save(relacion);
+				}
+			}
+			resultItinerario = currentItinerarioDTO;
+			LOGGER.info("- Transactional method end - ITINERARIO DATA: " + resultItinerario.toString());
 		}
+
 		LOGGER.info("- Transactional method end - ");
 		return resultItinerario;
 	}
@@ -236,25 +239,22 @@ public class ItinerarioService {
 		});
 		return itinerarios;
 	}
-	
-	public List<ItinerarioDTO> retrieveItinerariosFromUser(
-			final long pUserId) {
+
+	public List<ItinerarioDTO> retrieveItinerariosFromUser(final long pUserId) {
 		final ArrayList<ItinerarioDTO> itinerarios = new ArrayList<>();
 		repoItinerario.findAllByUserId(pUserId).stream().forEach(iti -> {
 			itinerarios.add(convertToDTO(iti));
 		});
 		return itinerarios;
 	}
-	
-	public List<ItinerarioDTO> retrieveItinerariosFromUser(
-			final long pUserId,final String pTownName, final double pUbicacionLat,
-			final double pUbicacionLon) {
+
+	public List<ItinerarioDTO> retrieveItinerariosFromUser(final long pUserId, final String pTownName,
+			final double pUbicacionLat, final double pUbicacionLon) {
 		final ArrayList<ItinerarioDTO> itinerarios = new ArrayList<>();
 		repoItinerario.findAllByUbicacion(pTownName, pUbicacionLat, pUbicacionLon).stream().forEach(iti -> {
 			itinerarios.add(convertToDTO(iti));
 		});
-		return Lists.newArrayList(Collections2.filter(
-				itinerarios, itinerario -> itinerario.getIdUser() == pUserId));
+		return Lists.newArrayList(Collections2.filter(itinerarios, itinerario -> itinerario.getIdUser() == pUserId));
 	}
 
 	/**********************************************************
