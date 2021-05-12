@@ -45,12 +45,12 @@ public class MainController {
 
 	@Autowired
 	private AuthUserService userService;
-	
+
 	@Autowired
 	private ItinerarioService itinerarioService;
 
 	@GetMapping("/user/account/verify")
-	public ResponseEntity<String> verificarCuentaGetRestAPI(@RequestParam String token){
+	public ResponseEntity<String> verificarCuentaGetRestAPI(@RequestParam String token) {
 		String websiteEmbebbed = "<!DOCTYPE html><html><body><h1>%s validado correctamente.</h1><p>Gracias por validar la cuenta.</p><p>Esperemos que disfrute de la aplicación</p><p>Atentamente el equipo de Spendlessout</p></body></html>";
 		String emailVerified = "";
 		try {
@@ -58,114 +58,118 @@ public class MainController {
 		} catch (Exception e) {
 			return new ResponseEntity<String>("ERROR DESCONOCIDO", new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
-		return new ResponseEntity<String>(String.format(websiteEmbebbed, emailVerified) , new HttpHeaders(), HttpStatus.OK);
+		return new ResponseEntity<String>(String.format(websiteEmbebbed, emailVerified), new HttpHeaders(),
+				HttpStatus.OK);
 	}
-	
-	
+
 	@GetMapping("/user/itinerario/listado")
-	public ResponseEntity<List<ItinerarioDTO>> listadoItinerarioGetRestAPI(@RequestParam long userId){
+	public ResponseEntity<List<ItinerarioDTO>> listadoItinerarioGetRestAPI(@RequestParam long userId, @RequestParam boolean asc) {
 		List<ItinerarioDTO> websiteEmbebbed;
 		try {
-			websiteEmbebbed = itinerarioService.retrieveItinerariosFromUser(userId);
+			websiteEmbebbed = itinerarioService.retrieveItinerariosFromUser(userId, asc);
 		} catch (Exception e) {
-			return new ResponseEntity<List<ItinerarioDTO>>(new ArrayList<>(), new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<List<ItinerarioDTO>>(new ArrayList<>(), new HttpHeaders(),
+					HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 		return new ResponseEntity<List<ItinerarioDTO>>(websiteEmbebbed, new HttpHeaders(), HttpStatus.OK);
 	}
-	
+
 	@GetMapping("/user/itinerario/listadobytown")
-	public ResponseEntity<List<ItinerarioDTO>> listadoItinerarioGetRestAPI(@RequestParam long userId, @RequestParam String townName, @RequestParam double townLat, @RequestParam double townLon){
+	public ResponseEntity<List<ItinerarioDTO>> listadoItinerarioGetRestAPI(@RequestParam long userId,
+			@RequestParam String townName, @RequestParam double townLat, @RequestParam double townLon,  @RequestParam boolean asc) {
 		List<ItinerarioDTO> websiteEmbebbed;
 		try {
-			websiteEmbebbed = itinerarioService.retrieveItinerariosFromUser(userId, townName,townLat, townLon);
+			websiteEmbebbed = itinerarioService.retrieveItinerariosFromUser(userId, townName, townLat, townLon, asc);
 		} catch (Exception e) {
-			return new ResponseEntity<List<ItinerarioDTO>>(new ArrayList<>(), new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<List<ItinerarioDTO>>(new ArrayList<>(), new HttpHeaders(),
+					HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 		return new ResponseEntity<List<ItinerarioDTO>>(websiteEmbebbed, new HttpHeaders(), HttpStatus.OK);
 	}
-	
+
 	@GetMapping("/itinerario/listado")
-	public ResponseEntity<List<ItinerarioDTO>> listadoItinerarioGetRestAPI(@RequestParam String townName, @RequestParam double townLat, @RequestParam double townLon){
+	public ResponseEntity<List<ItinerarioDTO>> listadoItinerarioGetRestAPI(@RequestParam String townName,
+			@RequestParam double townLat, @RequestParam double townLon, @RequestParam boolean asc) {
 		List<ItinerarioDTO> websiteEmbebbed;
 		try {
-			websiteEmbebbed = itinerarioService.retrieveItinerariosFromTownName(townName,townLat, townLon);
+			websiteEmbebbed = itinerarioService.retrieveItinerariosFromTownName(townName, townLat, townLon, asc);
 		} catch (Exception e) {
-			return new ResponseEntity<List<ItinerarioDTO>>(new ArrayList<>(), new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<List<ItinerarioDTO>>(new ArrayList<>(), new HttpHeaders(),
+					HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 		return new ResponseEntity<List<ItinerarioDTO>>(websiteEmbebbed, new HttpHeaders(), HttpStatus.OK);
 	}
-	
+
 	@GetMapping("/itinerario/actividades")
-	public ResponseEntity<List<ActividadDTO>> activitiesGetRestAPI(@RequestParam long itinerarioId){
+	public ResponseEntity<List<ActividadDTO>> activitiesGetRestAPI(@RequestParam long itinerarioId) {
 		List<ActividadDTO> websiteEmbebbed;
 		try {
 			websiteEmbebbed = itinerarioService.retrieveActivitiesFromItinerario(itinerarioId);
 		} catch (Exception e) {
-			return new ResponseEntity<List<ActividadDTO>>(new ArrayList<>(), new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<List<ActividadDTO>>(new ArrayList<>(), new HttpHeaders(),
+					HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 		return new ResponseEntity<List<ActividadDTO>>(websiteEmbebbed, new HttpHeaders(), HttpStatus.OK);
 	}
-	
-	
+
 	@PostMapping("/itinerario/generar")
 	@Transactional(timeout = 1000000)
 	public DeferredResult<ResponseEntity<ItinerarioDTO>> generarItinerarioPostRestAPI(
-			@RequestHeader("Authorization-Bearer") String pToken,
-			@RequestBody ItinerarioDTO pItinerario) {
+			@RequestHeader("Authorization-Bearer") String pToken, @RequestBody ItinerarioDTO pItinerario) {
 		final HttpHeaders responseHeaders = new HttpHeaders();
-		final DeferredResult <ResponseEntity<ItinerarioDTO>> deferredResult = new DeferredResult < > ();
+		final DeferredResult<ResponseEntity<ItinerarioDTO>> deferredResult = new DeferredResult<>();
 		if (pToken != null && !pToken.isEmpty()) {
 			JWTResponseDTO jwtRes = new JWTResponseDTO(pToken,
 					userService.getExpirationDateFromTokenInMilliseconds(pToken));
 			ItinerarioDTO returnedItinerario = itinerarioService.generateItinerario(pItinerario, jwtRes);
 			responseHeaders.set("Authorization-Bearer", jwtRes.getNewToken());
 			responseHeaders.set("Authorization-Bearer-Expired", String.valueOf(jwtRes.getNewTimeIsValid()));
-			deferredResult.setResult(new ResponseEntity<ItinerarioDTO>(returnedItinerario, responseHeaders, HttpStatus.OK));
-		}else {
+			deferredResult
+					.setResult(new ResponseEntity<ItinerarioDTO>(returnedItinerario, responseHeaders, HttpStatus.OK));
+		} else {
 			deferredResult.setResult(new ResponseEntity<ItinerarioDTO>(null, responseHeaders, HttpStatus.UNAUTHORIZED));
 		}
 		return deferredResult;
 	}
-	
+
 	@GetMapping("/towns")
-	public ResponseEntity<String> allTownsGetRestAPI(@RequestParam String cityname){
+	public ResponseEntity<String> allTownsGetRestAPI(@RequestParam String cityname) {
 		final HttpHeaders responseHeaders = new HttpHeaders();
 		responseHeaders.set("Content-Type", "application/json");
 		final String allTownsFromSpain = ItinerarioService.filterTownsAsJSON(cityname);
-		return new ResponseEntity<String>(allTownsFromSpain, responseHeaders, !allTownsFromSpain.isEmpty() ? HttpStatus.OK :  HttpStatus.NO_CONTENT) ;
+		return new ResponseEntity<String>(allTownsFromSpain, responseHeaders,
+				!allTownsFromSpain.isEmpty() ? HttpStatus.OK : HttpStatus.NO_CONTENT);
 	}
 
 	@GetMapping("/towns/findfullData")
-	public ResponseEntity<String> findfullDataTownGetRestAPI(@RequestParam String fullCityName){
+	public ResponseEntity<String> findfullDataTownGetRestAPI(@RequestParam String fullCityName) {
 		final HttpHeaders responseHeaders = new HttpHeaders();
 		responseHeaders.set("Content-Type", "application/json");
 		final String allDateTown = ItinerarioService.retrieveLatLonFromLocationNameJSON(fullCityName);
-		return new ResponseEntity<String>(allDateTown, responseHeaders, !allDateTown.isEmpty() ? HttpStatus.OK :  HttpStatus.NO_CONTENT) ;
+		return new ResponseEntity<String>(allDateTown, responseHeaders,
+				!allDateTown.isEmpty() ? HttpStatus.OK : HttpStatus.NO_CONTENT);
 	}
 
-	
 	@GetMapping("/user/registered")
-	public ResponseEntity<Boolean> checkUserEmailGetRestAPI(@RequestParam String email){
+	public ResponseEntity<Boolean> checkUserEmailGetRestAPI(@RequestParam String email) {
 		final boolean isRegistered = userService.isEmailUserRegistered(email);
-		return new ResponseEntity<Boolean>(isRegistered, new HttpHeaders(), HttpStatus.OK );
+		return new ResponseEntity<Boolean>(isRegistered, new HttpHeaders(), HttpStatus.OK);
 	}
-	
+
 	@PostMapping("/user/auth")
 	@ResponseStatus(HttpStatus.OK)
 	public ResponseEntity<JWTResponseDTO> loginPostRestAPI(@RequestBody JWTRequestDTO pUser) {
 		final JWTResponseDTO result = userService.login(pUser);
-		return new ResponseEntity<JWTResponseDTO>(result, new HttpHeaders(), 
-				result.getToken() != null ? HttpStatus.OK :
-			HttpStatus.UNAUTHORIZED);
+		return new ResponseEntity<JWTResponseDTO>(result, new HttpHeaders(),
+				result.getToken() != null ? HttpStatus.OK : HttpStatus.UNAUTHORIZED);
 
 	}
-	
+
 	@GetMapping("/user/auth/refreshToken")
 	public ResponseEntity<JWTResponseDTO> refreshTokenGetRestAPI(@RequestHeader("Authorization-Bearer") String pToken) {
 		final JWTResponseDTO result = userService.refreshToken(pToken);
 		return new ResponseEntity<JWTResponseDTO>(result, new HttpHeaders(),
-				result.getToken() != null ? HttpStatus.OK :
-				HttpStatus.UNAUTHORIZED);
+				result.getToken() != null ? HttpStatus.OK : HttpStatus.UNAUTHORIZED);
 	}
 
 	@GetMapping("/user/auth/userdata")
@@ -187,10 +191,11 @@ public class MainController {
 	public JWTResponseDTO signinPostRestAPI(@RequestBody UsuarioDTO user) {
 		return userService.registerUserData(user);
 	}
-	
+
 	@PostMapping("/user/auth/editdata")
 	@ResponseStatus(HttpStatus.OK)
-	public ResponseEntity<UsuarioDTO> editDataPostRestAPI(@RequestBody UsuarioDTO pUser, @RequestHeader("Authorization-Bearer") String pToken) {
+	public ResponseEntity<UsuarioDTO> editDataPostRestAPI(@RequestBody UsuarioDTO pUser,
+			@RequestHeader("Authorization-Bearer") String pToken) {
 		final HttpHeaders responseHeaders = new HttpHeaders();
 		if (pToken != null && !pToken.isEmpty()) {
 			JWTResponseDTO jwtRes = new JWTResponseDTO(pToken,
