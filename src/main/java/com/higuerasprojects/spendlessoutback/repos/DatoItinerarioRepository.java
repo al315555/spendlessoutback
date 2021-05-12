@@ -16,10 +16,10 @@ import com.higuerasprojects.spendlessoutback.model.DatoItinerario;
  */
 public interface DatoItinerarioRepository extends JpaRepository<DatoItinerario, Long> {
 
-	@Query(value="SELECT * FROM tdato_itinerario u WHERE u.ubicacion_nombre=?1 AND u.ubicacion_lon=?3 AND u.ubicacion_lat=?2", nativeQuery=true)
+	@Query(value="SELECT * FROM tdato_itinerario u WHERE u.ubicacion_nombre=?1 AND u.ubicacion_lon=?3 AND u.ubicacion_lat=?2 ORDER BY u.precio_total ?4", nativeQuery=true)
 	List<DatoItinerario> findAllByUbicacion(final String pUbicacionNombre, final double pUbicacionLat,
 			final double pUbicacionLon, final String asc);
-	@Query(value="SELECT * FROM tdato_itinerario u WHERE u.id_user=?1 ORDER BY u.precio_total ", nativeQuery=true)
+	@Query(value="SELECT * FROM tdato_itinerario u WHERE u.id_user=?1 ORDER BY u.precio_total ?2", nativeQuery=true)
 	List<DatoItinerario> findAllByUserId(
 			final double pIdUser, final String asc);
 
