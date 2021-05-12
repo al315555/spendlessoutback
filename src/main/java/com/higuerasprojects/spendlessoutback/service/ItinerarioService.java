@@ -151,6 +151,7 @@ public class ItinerarioService {
 			}
 		}
 		LOGGER.info("- Generate itinerario Service exit -");
+		itinerarioDTO.setGenerationEnded(Boolean.TRUE);
 		return itinerarioDTO;
 	}
 

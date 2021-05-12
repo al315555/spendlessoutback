@@ -53,6 +53,9 @@ public class ItinerarioDTO implements Serializable {
 	
 	@JsonFormat
 	private long idUser; 
+	
+	@JsonFormat
+	private boolean generationEnded;
 
 	/**
 	 * @return the hasCar
@@ -264,5 +267,19 @@ public class ItinerarioDTO implements Serializable {
 				.append("|")
 				.append(this.timeStampTo)
 				.toString();
+	}
+
+	/**
+	 * @return the generationEnded
+	 */
+	public boolean isGenerationEnded() {
+		return generationEnded;
+	}
+
+	/**
+	 * @param generationEnded the generationEnded to set
+	 */
+	public void setGenerationEnded(boolean generationEnded) {
+		this.generationEnded = generationEnded;
 	}
 }
