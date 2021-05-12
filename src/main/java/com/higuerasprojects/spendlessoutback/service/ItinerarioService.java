@@ -172,7 +172,7 @@ public class ItinerarioService {
 			LOGGER.info("- Transactional method begin - " + pItinerarioDTO);
 			Optional<DatoItinerario> itinerarioOpt = repoItinerario.findById(pItinerarioDTO.getId());
 			List<DatoItinerario> itinerarioList = repoItinerario.findAllByUbicacion(pItinerarioDTO.getUbicacionNombre(),
-					pItinerarioDTO.getUbicacionLat(), pItinerarioDTO.getUbicacionLon(), "ASC");
+					pItinerarioDTO.getUbicacionLat(), pItinerarioDTO.getUbicacionLon(), " ASC ");
 			if (itinerarioOpt.isPresent()) {
 				LOGGER.info("- Transactional method begin - FOUND ONE IN DB ");
 				return convertToDTO(itinerarioOpt.get());
@@ -234,7 +234,7 @@ public class ItinerarioService {
 	public List<ItinerarioDTO> retrieveItinerariosFromTownName(final String pTownName, final double pUbicacionLat,
 			final double pUbicacionLon, final boolean asc) {
 		final ArrayList<ItinerarioDTO> itinerarios = new ArrayList<>();
-		repoItinerario.findAllByUbicacion(pTownName, pUbicacionLat, pUbicacionLon, (asc ? "ASC" : "DESC")).stream().forEach(iti -> {
+		repoItinerario.findAllByUbicacion(pTownName, pUbicacionLat, pUbicacionLon, (asc ? " ASC " : " DESC ")).stream().forEach(iti -> {
 			itinerarios.add(convertToDTO(iti));
 		});
 		return itinerarios;
@@ -242,7 +242,7 @@ public class ItinerarioService {
 
 	public List<ItinerarioDTO> retrieveItinerariosFromUser(final long pUserId, final boolean asc) {
 		final ArrayList<ItinerarioDTO> itinerarios = new ArrayList<>();
-		repoItinerario.findAllByUserId(pUserId, (asc ? "ASC" : "DESC")).stream().forEach(iti -> {
+		repoItinerario.findAllByUserId(pUserId, (asc ? " ASC " : " DESC ")).stream().forEach(iti -> {
 			itinerarios.add(convertToDTO(iti));
 		});
 		return itinerarios;
@@ -251,7 +251,7 @@ public class ItinerarioService {
 	public List<ItinerarioDTO> retrieveItinerariosFromUser(final long pUserId, final String pTownName,
 			final double pUbicacionLat, final double pUbicacionLon, final boolean asc) {
 		final ArrayList<ItinerarioDTO> itinerarios = new ArrayList<>();
-		repoItinerario.findAllByUbicacion(pTownName, pUbicacionLat, pUbicacionLon, (asc ? "ASC" : "DESC")).stream().forEach(iti -> {
+		repoItinerario.findAllByUbicacion(pTownName, pUbicacionLat, pUbicacionLon, (asc ? " ASC " : " DESC ")).stream().forEach(iti -> {
 			itinerarios.add(convertToDTO(iti));
 		});
 		return Lists.newArrayList(Collections2.filter(itinerarios, itinerario -> itinerario.getIdUser() == pUserId));
