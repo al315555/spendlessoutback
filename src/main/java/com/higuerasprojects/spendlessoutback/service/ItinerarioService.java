@@ -171,8 +171,9 @@ public class ItinerarioService {
 		if (Objects.nonNull(pItinerarioDTO) && pItinerarioDTO.isValid()) {
 			LOGGER.info("- Transactional method begin - " + pItinerarioDTO);
 			Optional<DatoItinerario> itinerarioOpt = repoItinerario.findById(pItinerarioDTO.getId());
-			List<DatoItinerario> itinerarioList = repoItinerario.findAllByUbicacion(pItinerarioDTO.getUbicacionNombre(),
-					pItinerarioDTO.getUbicacionLat(), pItinerarioDTO.getUbicacionLon(), Boolean.TRUE);
+			List<DatoItinerario> itinerarioList = repoItinerario.findAllByUbicacionOrderByPrecioASC(
+					pItinerarioDTO.getUbicacionNombre(), pItinerarioDTO.getUbicacionLat(),
+					pItinerarioDTO.getUbicacionLon());
 			if (itinerarioOpt.isPresent()) {
 				LOGGER.info("- Transactional method begin - FOUND ONE IN DB ");
 				return convertToDTO(itinerarioOpt.get());
@@ -234,7 +235,13 @@ public class ItinerarioService {
 	public List<ItinerarioDTO> retrieveItinerariosFromTownName(final String pTownName, final double pUbicacionLat,
 			final double pUbicacionLon, final boolean asc) {
 		final ArrayList<ItinerarioDTO> itinerarios = new ArrayList<>();
-		repoItinerario.findAllByUbicacion(pTownName, pUbicacionLat, pUbicacionLon, asc ).stream().forEach(iti -> {
+		List<DatoItinerario> dataItin = new ArrayList<>();
+		if (asc) {
+			dataItin = repoItinerario.findAllByUbicacionOrderByPrecioASC(pTownName, pUbicacionLat, pUbicacionLon);
+		} else {
+			dataItin = repoItinerario.findAllByUbicacionOrderByPrecioDESC(pTownName, pUbicacionLat, pUbicacionLon);
+		}
+		dataItin.stream().forEach(iti -> {
 			itinerarios.add(convertToDTO(iti));
 		});
 		return itinerarios;
@@ -242,7 +249,13 @@ public class ItinerarioService {
 
 	public List<ItinerarioDTO> retrieveItinerariosFromUser(final long pUserId, final boolean asc) {
 		final ArrayList<ItinerarioDTO> itinerarios = new ArrayList<>();
-		repoItinerario.findAllByUserId(pUserId, asc  ).stream().forEach(iti -> {
+		List<DatoItinerario> dataItin = new ArrayList<>();
+		if (asc) {
+			dataItin = repoItinerario.findAllByUserIdOrderByPrecioASC(pUserId);
+		} else {
+			dataItin = repoItinerario.findAllByUserIdOrderByPrecioDESC(pUserId);
+		}
+		dataItin.stream().forEach(iti -> {
 			itinerarios.add(convertToDTO(iti));
 		});
 		return itinerarios;
@@ -251,7 +264,13 @@ public class ItinerarioService {
 	public List<ItinerarioDTO> retrieveItinerariosFromUser(final long pUserId, final String pTownName,
 			final double pUbicacionLat, final double pUbicacionLon, final boolean asc) {
 		final ArrayList<ItinerarioDTO> itinerarios = new ArrayList<>();
-		repoItinerario.findAllByUbicacion(pTownName, pUbicacionLat, pUbicacionLon, asc).stream().forEach(iti -> {
+		List<DatoItinerario> dataItin = new ArrayList<>();
+		if (asc) {
+			dataItin = repoItinerario.findAllByUbicacionOrderByPrecioASC(pTownName, pUbicacionLat, pUbicacionLon);
+		} else {
+			dataItin = repoItinerario.findAllByUbicacionOrderByPrecioDESC(pTownName, pUbicacionLat, pUbicacionLon);
+		}
+		dataItin.stream().forEach(iti -> {
 			itinerarios.add(convertToDTO(iti));
 		});
 		return Lists.newArrayList(Collections2.filter(itinerarios, itinerario -> itinerario.getIdUser() == pUserId));
