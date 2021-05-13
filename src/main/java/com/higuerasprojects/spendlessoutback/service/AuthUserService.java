@@ -236,7 +236,7 @@ public class AuthUserService {
 			final String host="smtp.gmail.com";
 			final String starttls="true";
 			final String mail="noreply.spendlessout@gmail.com";
-			final String password="";
+			final String password=""; 
 			final String user="noreply.spendlessout@gmail.com";
 			final String auth="true";
 			
