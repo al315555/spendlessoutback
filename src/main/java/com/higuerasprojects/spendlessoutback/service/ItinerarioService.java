@@ -85,7 +85,7 @@ public class ItinerarioService {
 	 * @param pJWT
 	 * @param username
 	 */
-	private void refreshToken(JWTResponseDTO pJWT, final String username) {
+	public void refreshToken(JWTResponseDTO pJWT, final String username) {
 		LOGGER.info("- new token generating... -");
 		pJWT.setNewToken(jwtService.generateToken(username));
 		pJWT.setNewTimeIsValid(getExpirationDateFromTokenInMilliseconds(pJWT.getNewToken()));

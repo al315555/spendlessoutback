@@ -29,6 +29,7 @@ import com.higuerasprojects.spendlessoutback.dto.jwt.JWTRequestDTO;
 import com.higuerasprojects.spendlessoutback.dto.jwt.JWTResponseDTO;
 import com.higuerasprojects.spendlessoutback.service.AuthUserService;
 import com.higuerasprojects.spendlessoutback.service.ItinerarioService;
+import com.higuerasprojects.spendlessoutback.service.JWTAuthTokenService;
 
 /**
  * @author ruhiguer
@@ -48,6 +49,9 @@ public class MainController {
 
 	@Autowired
 	private ItinerarioService itinerarioService;
+	
+	@Autowired
+	private JWTAuthTokenService jwtService;
 
 	@GetMapping("/user/account/verify")
 	public ResponseEntity<String> verificarCuentaGetRestAPI(@RequestParam String token) {
@@ -63,28 +67,53 @@ public class MainController {
 	}
 
 	@GetMapping("/user/itinerario/listado")
-	public ResponseEntity<List<ItinerarioDTO>> listadoItinerarioGetRestAPI(@RequestParam long userId, @RequestParam boolean asc) {
+	public ResponseEntity<List<ItinerarioDTO>> listadoItinerarioGetRestAPI(
+			@RequestHeader("Authorization-Bearer") String pToken,
+			@RequestParam long userId, @RequestParam boolean asc) {
 		List<ItinerarioDTO> websiteEmbebbed;
-		try {
-			websiteEmbebbed = itinerarioService.retrieveItinerariosFromUser(userId, asc);
-		} catch (Exception e) {
-			return new ResponseEntity<List<ItinerarioDTO>>(new ArrayList<>(), new HttpHeaders(),
-					HttpStatus.INTERNAL_SERVER_ERROR);
+		final HttpHeaders responseHeaders = new HttpHeaders();
+		if (pToken != null && !pToken.isEmpty()) {
+			JWTResponseDTO jwtRes = new JWTResponseDTO(pToken,
+					userService.getExpirationDateFromTokenInMilliseconds(pToken));
+			try {
+				websiteEmbebbed = itinerarioService.retrieveItinerariosFromUser(userId, asc);
+				itinerarioService.refreshToken(jwtRes,  jwtService.getUsernameFromToken(pToken));
+				responseHeaders.set("Authorization-Bearer", jwtRes.getNewToken());
+    			responseHeaders.set("Authorization-Bearer-Expired", String.valueOf(jwtRes.getNewTimeIsValid()));
+			} catch (Exception e) {
+				return new ResponseEntity<List<ItinerarioDTO>>(new ArrayList<>(), new HttpHeaders(),
+						HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+			return new ResponseEntity<List<ItinerarioDTO>>(websiteEmbebbed, responseHeaders, HttpStatus.OK);
+		} else {
+			return new ResponseEntity<List<ItinerarioDTO>>(new ArrayList<>(), responseHeaders, HttpStatus.UNAUTHORIZED);
 		}
-		return new ResponseEntity<List<ItinerarioDTO>>(websiteEmbebbed, new HttpHeaders(), HttpStatus.OK);
 	}
 
 	@GetMapping("/user/itinerario/listadobytown")
-	public ResponseEntity<List<ItinerarioDTO>> listadoItinerarioGetRestAPI(@RequestParam long userId,
+	public ResponseEntity<List<ItinerarioDTO>> listadoItinerarioGetRestAPI(
+			@RequestHeader("Authorization-Bearer") String pToken,
+			@RequestParam long userId,
 			@RequestParam String townName, @RequestParam double townLat, @RequestParam double townLon,  @RequestParam boolean asc) {
 		List<ItinerarioDTO> websiteEmbebbed;
-		try {
-			websiteEmbebbed = itinerarioService.retrieveItinerariosFromUser(userId, townName, townLat, townLon, asc);
-		} catch (Exception e) {
-			return new ResponseEntity<List<ItinerarioDTO>>(new ArrayList<>(), new HttpHeaders(),
-					HttpStatus.INTERNAL_SERVER_ERROR);
+		final HttpHeaders responseHeaders = new HttpHeaders();
+		if (pToken != null && !pToken.isEmpty()) {
+			JWTResponseDTO jwtRes = new JWTResponseDTO(pToken,
+					userService.getExpirationDateFromTokenInMilliseconds(pToken));
+			try {
+				websiteEmbebbed = itinerarioService.retrieveItinerariosFromUser(userId, townName, townLat, townLon, asc);
+				itinerarioService.refreshToken(jwtRes,  jwtService.getUsernameFromToken(pToken));
+				responseHeaders.set("Authorization-Bearer", jwtRes.getNewToken());
+    			responseHeaders.set("Authorization-Bearer-Expired", String.valueOf(jwtRes.getNewTimeIsValid()));
+			} catch (Exception e) {
+				return new ResponseEntity<List<ItinerarioDTO>>(new ArrayList<>(), new HttpHeaders(),
+						HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+			return new ResponseEntity<List<ItinerarioDTO>>(websiteEmbebbed, responseHeaders, HttpStatus.OK);
+		} else {
+			return new ResponseEntity<List<ItinerarioDTO>>(new ArrayList<>(), responseHeaders, HttpStatus.UNAUTHORIZED);
 		}
-		return new ResponseEntity<List<ItinerarioDTO>>(websiteEmbebbed, new HttpHeaders(), HttpStatus.OK);
+		
 	}
 
 	@GetMapping("/itinerario/listado")
